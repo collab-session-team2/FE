@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { useDiary } from "../../store/useDiary";
 import { fmtEntry } from "../../utils/date";
-import { getDiaryDetail } from "../../api/diary";
+import { getDiary } from "../../api/diary";
 
 const C = {
   bg: "#3C2A21",
@@ -81,17 +81,23 @@ const UserIcon = () => (
 
 export default function DiaryDetail() {
   const navigate = useNavigate();
+  const location = useLocation();
   // 라우트: /diary/:diaryId/entry/:entryId (diaryId=방, entryId=일기)
   const { diaryId, entryId } = useParams();
   const { activeDiaryId, openDiary, openEntry } = useDiary();
+
+  // 작성 직후 이동한 경우 방금 만든 일기를 시드로 받아 즉시 렌더한다.
+  const seededEntry = location.state?.entry ?? null;
 
   const [expanded, setExpanded] = useState(false);
   const [input, setInput] = useState("");
   const [showComments, setShowComments] = useState(false);
 
-  // 일기 상세 조회 상태
-  const [entry, setEntry] = useState(null);
-  const [loading, setLoading] = useState(Boolean(activeDiaryId || entryId));
+  // 일기 상세 조회 상태 (시드가 있으면 그 값으로 초기 렌더)
+  const [entry, setEntry] = useState(seededEntry);
+  const [loading, setLoading] = useState(
+    seededEntry ? false : Boolean(activeDiaryId || entryId),
+  );
   const [error, setError] = useState(null);
 
   // TODO: 확인 필요 - 좋아요/댓글 관련 백엔드 API가 문서에 없어 로컬 상태로만 동작(미저장)
@@ -107,17 +113,18 @@ export default function DiaryDetail() {
 
   const targetDiaryId = activeDiaryId || entryId;
 
+  // 시드가 있어도 상세를 최신화한다. (실패해도 시드가 있으면 화면은 유지)
   useEffect(() => {
     if (!targetDiaryId) return;
     let mounted = true;
-    getDiaryDetail(targetDiaryId)
+    getDiary(targetDiaryId)
       .then((res) => mounted && setEntry(res))
-      .catch((e) => mounted && setError(e.message))
+      .catch((e) => mounted && !seededEntry && setError(e.message))
       .finally(() => mounted && setLoading(false));
     return () => {
       mounted = false;
     };
-  }, [targetDiaryId]);
+  }, [targetDiaryId, seededEntry]);
 
   const toggleLike = () => {
     setLiked((prev) => !prev);

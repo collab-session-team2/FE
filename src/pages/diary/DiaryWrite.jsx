@@ -56,13 +56,24 @@ export default function DiaryWrite() {
     try {
       let diaryImage = null;
       if (imageFile) {
+        // 이미지 먼저 업로드 → URL 획득 후 diaryImage 로 전송
         const uploaded = await uploadImage(imageFile, "DIARY");
         diaryImage = uploaded.imageUrl;
       }
-      await createDiary(activeRoomId, { title, content, diaryImage });
-      // 작성 완료 → 홈으로 이동. 이후 "지난 기록 보기"나 날짜 이동 시
-      // 목록을 새로 조회하므로 방금 작성한 일기가 노출된다.
-      navigate("/");
+      // 작성 → 반환된 일기(diaryId 포함) 획득
+      const created = await createDiary(activeRoomId, {
+        title,
+        content,
+        diaryImage,
+      });
+      // 작성 완료 → 저장된 일기 상세로 이동.
+      // - state.entry 로 방금 만든 객체를 시드해 상세가 즉시 렌더되게 하고,
+      //   상세 화면이 getDiary 로 최신화한다.
+      // - replace: 뒤로가기 시 작성 화면이 아니라 이전 화면으로 돌아가도록.
+      navigate(`/diary/${activeRoomId}/entry/${created.diaryId}`, {
+        replace: true,
+        state: { entry: created },
+      });
     } catch (e) {
       setError(e.message);
       setSubmitting(false);
