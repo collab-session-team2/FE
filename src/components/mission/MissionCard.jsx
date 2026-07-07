@@ -52,16 +52,16 @@ function MissionCard({ mission, onVerifyClick }) {
   return (
     <Card>
       <MissionInfo>
-        <MissionTitle>{mission.title}</MissionTitle>
-        <MissionPoint>{mission.point} point</MissionPoint>
+        <MissionTitle>{mission.missionTitle}</MissionTitle>
+        <MissionPoint>{mission.exp} exp</MissionPoint>
       </MissionInfo>
 
       <VerifyButton
         type="button"
         onClick={onVerifyClick}
-        $completed={mission.completed}
+        $completed={mission.complete}
       >
-        {mission.completed ? "인증완료" : "인증하기"}
+        {mission.complete ? "인증완료" : "인증하기"}
       </VerifyButton>
     </Card>
   );

@@ -4,13 +4,18 @@ import styled from "styled-components";
 
 import MissionCard from "../../components/mission/MissionCard";
 import MissionDropdown from "../../components/mission/MissionDropdown";
-import { fetchMissions } from "../../api/missionApi";
+import { getMissions } from "../../api/missionApi";
 import { useDiary } from "../../store/useDiary";
 import { getLevelInfo } from "../../utils/level";
 
+// 완료한 미션들의 exp 합으로 누적 포인트(레벨 경험치)를 계산한다.
+const sumCompletedExp = (missions) =>
+  missions.filter((m) => m.complete).reduce((sum, m) => sum + (m.exp ?? 0), 0);
+
 function MissionPage() {
   const navigate = useNavigate();
-  const { activeMissions, activeTotalPoint, setMissionData } = useDiary();
+  const { activeRoomId, activeMissions, activeTotalPoint, setMissionData } =
+    useDiary();
   const [selectedDifficulty, setSelectedDifficulty] = useState("Easy");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -18,13 +23,22 @@ function MissionPage() {
   useEffect(() => {
     let ignore = false;
 
+    // 방이 선택되지 않았으면 조회하지 않는다. (안내 문구는 렌더에서 처리)
+    if (!activeRoomId) return;
+
     const loadMissions = async () => {
       setIsLoading(true);
       setErrorMessage("");
 
       try {
-        const loadedMissionData = await fetchMissions();
-        if (!ignore) setMissionData(loadedMissionData);
+        // 기본 정렬 asc(오름차순). data 배열을 그대로 받는다.
+        const missions = await getMissions(activeRoomId, "asc");
+        if (!ignore) {
+          setMissionData({
+            missions,
+            totalPoint: sumCompletedExp(missions),
+          });
+        }
       } catch (error) {
         if (!ignore) {
           setErrorMessage(error.message);
@@ -40,7 +54,7 @@ function MissionPage() {
     return () => {
       ignore = true;
     };
-  }, [setMissionData]);
+  }, [activeRoomId, setMissionData]);
 
   const levelInfo = getLevelInfo(activeTotalPoint);
   const progressPercent =
@@ -48,10 +62,10 @@ function MissionPage() {
 
   const sortedMissions = [...activeMissions].sort((a, b) => {
     if (selectedDifficulty === "Easy") {
-      return a.point - b.point;
+      return a.exp - b.exp;
     }
 
-    return b.point - a.point;
+    return b.exp - a.exp;
   });
 
   const handleVerifyClick = (missionId) => {
@@ -85,18 +99,29 @@ function MissionPage() {
         </MissionHeader>
 
         <MissionListBox>
-          {isLoading && <StateText>미션을 불러오는 중입니다.</StateText>}
-          {!isLoading && errorMessage && <StateText>{errorMessage}</StateText>}
-          {!isLoading && !errorMessage && sortedMissions.length === 0 && (
-            <StateText>진행 중인 미션이 없습니다.</StateText>
+          {!activeRoomId && (
+            <StateText>먼저 교환일기 방을 선택해주세요.</StateText>
           )}
-          {!isLoading &&
+          {activeRoomId && isLoading && (
+            <StateText>미션을 불러오는 중입니다.</StateText>
+          )}
+          {activeRoomId && !isLoading && errorMessage && (
+            <StateText>{errorMessage}</StateText>
+          )}
+          {activeRoomId &&
+            !isLoading &&
+            !errorMessage &&
+            sortedMissions.length === 0 && (
+              <StateText>진행 중인 미션이 없습니다.</StateText>
+            )}
+          {activeRoomId &&
+            !isLoading &&
             !errorMessage &&
             sortedMissions.map((mission) => (
               <MissionCard
-                key={mission.id}
+                key={mission.missionId}
                 mission={mission}
-                onVerifyClick={() => handleVerifyClick(mission.id)}
+                onVerifyClick={() => handleVerifyClick(mission.missionId)}
               />
             ))}
         </MissionListBox>

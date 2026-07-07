@@ -13,7 +13,7 @@ import imageIcon from "../../assets/icons/image_icon.svg";
 function MissionVerifyPage() {
   const navigate = useNavigate();
   const { missionId } = useParams();
-  const { getMissionById, completeMission } = useDiary();
+  const { activeRoomId, getMissionById, completeMission } = useDiary();
 
   const [previewImage, setPreviewImage] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -21,7 +21,7 @@ function MissionVerifyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentMission = getMissionById(missionId);
-  const missionPoint = currentMission?.point || 0;
+  const missionPoint = currentMission?.exp || 0;
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -37,11 +37,20 @@ function MissionVerifyPage() {
       return;
     }
 
+    if (!activeRoomId) {
+      alert("방 정보가 없어 인증할 수 없습니다. 미션 목록에서 다시 진입해주세요.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const imageUrl = await uploadImage(selectedFile, "MISSION");
-      await verifyMission({ missionId, imageUrl });
+      // 1) 사진을 먼저 업로드해 URL(imageUrl)을 받는다.
+      const { imageUrl } = await uploadImage(selectedFile, "MISSION");
+      // 2) 받은 URL 을 missionImage 로 담아 인증 요청. 응답은 갱신된 미션 객체.
+      await verifyMission(activeRoomId, missionId, { missionImage: imageUrl });
+      // 3) 캐시된 목록을 즉시 갱신(complete/exp 반영). 목록 화면으로 돌아가면
+      //    MissionPage 가 재마운트되며 서버 기준으로 다시 조회한다.
       completeMission(missionId);
       setIsModalOpen(true);
     } catch (error) {

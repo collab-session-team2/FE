@@ -31,21 +31,24 @@ export function DiaryProvider({ children }) {
   }, []);
 
   const getMissionById = (missionId) =>
-    activeMissions.find((m) => String(m.id) === String(missionId)) || null;
+    activeMissions.find((m) => String(m.missionId) === String(missionId)) ||
+    null;
 
   const completeMission = (missionId) => {
     const target = activeMissions.find(
-      (m) => String(m.id) === String(missionId),
+      (m) => String(m.missionId) === String(missionId),
     );
 
     setActiveMissions((prev) =>
       prev.map((m) =>
-        String(m.id) !== String(missionId) ? m : { ...m, completed: true },
+        String(m.missionId) !== String(missionId)
+          ? m
+          : { ...m, complete: true },
       ),
     );
 
-    if (target && !target.completed) {
-      setActiveTotalPoint((prev) => prev + target.point);
+    if (target && !target.complete) {
+      setActiveTotalPoint((prev) => prev + target.exp);
     }
   };
 
