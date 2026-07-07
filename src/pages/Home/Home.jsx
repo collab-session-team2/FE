@@ -3,12 +3,11 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Footer from "../../components/footer/Footer";
 import { FiPlus } from "react-icons/fi";
+import { useDiary } from "../../store/DiaryContext";
 
 export default function Home() {
   const navigate = useNavigate();
-
-  // 생성/참여한 일기장 목록 (처음엔 0개)
-  const [diaries, setDiaries] = useState([]);
+  const { diaries, joinRoom, openDiary } = useDiary();
 
   // 모달 단계: null | "choice" | "code"
   const [modalStep, setModalStep] = useState(null);
@@ -26,17 +25,17 @@ export default function Home() {
     navigate("/create");
   };
 
-  // 코드로 참여하기 -> 코드 입력 후 일기장 생성
+  // 코드로 참여하기 -> 일기장 카드 추가
   const joinByCode = () => {
-    const trimmed = code.trim();
-    if (!trimmed) return;
-
-    const newDiary = {
-      id: Date.now(),
-      title: `${trimmed} 일기장`,
-    };
-    setDiaries((prev) => [...prev, newDiary]);
+    if (!code.trim()) return;
+    joinRoom({ code: code.trim() });
     closeModal();
+  };
+
+  // 일기장 클릭 -> 해당 방 열고 DiaryMain 이동
+  const goDiary = (id) => {
+    openDiary(id);
+    navigate("/diaryMain");
   };
 
   return (
@@ -57,12 +56,12 @@ export default function Home() {
         ) : (
           <Grid>
             {diaries.map((diary) => (
-              <DiaryCard key={diary.id} onClick={() => navigate("/diaryMain")}>
+              <DiaryCard key={diary.id} onClick={() => goDiary(diary.id)}>
                 <CardInner>
-                  <CardImage />
+                  <CardImage $src={diary.photo} />
                   <CardTab />
                 </CardInner>
-                <CardLabel>{diary.title}</CardLabel>
+                <CardLabel>{diary.name}</CardLabel>
               </DiaryCard>
             ))}
           </Grid>
@@ -138,7 +137,7 @@ const Header = styled.div`
 const PageTitle = styled.h1`
   color: #fff8e8;
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 600;
 `;
 
 const AddButton = styled.button`
@@ -206,6 +205,9 @@ const CardImage = styled.div`
   height: 100px;
   background: #ffffff;
   border-radius: 4px;
+  ${({ $src }) =>
+    $src &&
+    `background-image: url(${$src}); background-size: cover; background-position: center;`}
 `;
 
 const CardTab = styled.div`

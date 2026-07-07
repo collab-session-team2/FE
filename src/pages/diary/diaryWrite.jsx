@@ -1,11 +1,17 @@
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { FiImage } from "react-icons/fi";
 import Footer from "../../components/footer/Footer";
+import { useDiary, fmtMain } from "../../store/DiaryContext";
 
 export default function DiaryWrite() {
+  const navigate = useNavigate();
+  const { activeDiary, addEntry } = useDiary();
   const fileInputRef = useRef(null);
   const [image, setImage] = useState(null);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -15,12 +21,19 @@ export default function DiaryWrite() {
     setImage(URL.createObjectURL(file));
   };
 
+  // 작성 완료 -> 일기 추가 + 다음 사람 Turn 으로 전환
+  const handleSubmit = () => {
+    if (!content.trim() && !title.trim()) return;
+    addEntry(activeDiary.id, { title, content, photo: image });
+    navigate("/diaryMain");
+  };
+
   return (
     <Page>
       <Content>
         <Logo>SLAM BOOK</Logo>
-        <DiaryTitle>걸스토크</DiaryTitle>
-        <DateText>07.08.2026</DateText>
+        <DiaryTitle>{activeDiary?.name}</DiaryTitle>
+        <DateText>{fmtMain(new Date())}</DateText>
 
         <WriteCard>
           <HiddenInput
@@ -41,9 +54,18 @@ export default function DiaryWrite() {
             )}
           </ImageUploadBox>
 
-          <TextArea />
+          <TitleInput
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="제목을 입력하세요."
+          />
 
-          <SubmitButton>작성 완료</SubmitButton>
+          <TextArea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          />
+
+          <SubmitButton onClick={handleSubmit}>작성 완료</SubmitButton>
         </WriteCard>
       </Content>
 
@@ -56,7 +78,7 @@ const Page = styled.div`
   width: 390px;
   min-height: 844px;
   margin: 0 auto;
-  background: #371E16;
+  background: #371e16;
 `;
 
 const Content = styled.div`
@@ -85,7 +107,7 @@ const DateText = styled.p`
 
 const WriteCard = styled.div`
   width: 350px;
-  height: 522px;
+  min-height: 522px;
   background: #fff8e8;
   border-radius: 20px;
   padding: 28px;
@@ -124,6 +146,19 @@ const PreviewImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
+`;
+
+const TitleInput = styled.input`
+  width: 294px;
+  height: 44px;
+  border: none;
+  border-radius: 14px;
+  background: white;
+  outline: none;
+  padding: 0 16px;
+  margin-bottom: 14px;
+  font-size: 16px;
+  font-weight: 700;
 `;
 
 const TextArea = styled.textarea`

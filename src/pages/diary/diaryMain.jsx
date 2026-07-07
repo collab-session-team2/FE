@@ -1,53 +1,112 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import Footer from "../../components/footer/Footer";
 import CloseFriendCard from "../../assets/images/closeFriend.svg";
+import CasualFriendCard from "../../assets/images/casualFriend.svg";
+import DiaryLook from "./DiaryLook";
+import {
+  useDiary,
+  startOfDay,
+  addDays,
+  isSameDay,
+  weekEn,
+  fmtMain,
+} from "../../store/DiaryContext";
 
 export default function DiaryMain() {
   const navigate = useNavigate();
-  const [selectedDay, setSelectedDay] = useState(2);
+  const { activeDiary, getTurn } = useDiary();
 
-  const days = [
-    { day: "MON", date: 6 },
-    { day: "TUE", date: 7 },
-    { day: "WED", date: 8 },
-    { day: "THU", date: 9 },
-    { day: "FRI", date: 10 },
-  ];
+  const today = startOfDay(new Date());
+  const [weekOffset, setWeekOffset] = useState(0); // 0 = 오늘이 가운데
+
+  const centerDate = addDays(today, weekOffset); // 선택 = 가운데
+  const days = [-2, -1, 0, 1, 2].map((i) => addDays(centerDate, i));
+
+  const selectedIsToday = isSameDay(centerDate, today);
+  const selectedIsPast = centerDate < today;
+
+  // 날짜 클릭 -> 해당 날짜를 가운데로 (미래는 불가)
+  const pickDay = (idx) => {
+    const next = weekOffset + (idx - 2);
+    if (next > 0) return;
+    setWeekOffset(next);
+  };
+
+  const turn = getTurn(activeDiary);
+  const order = activeDiary?.order || 1;
+  const cardSvg = order === 1 ? CasualFriendCard : CloseFriendCard;
 
   return (
     <Page>
       <Content>
         <Logo>SLAM BOOK</Logo>
 
-        <DiaryTitle>걸스토크</DiaryTitle>
-        <DateText>07.08.2026</DateText>
+        <DiaryTitle>{activeDiary?.name}</DiaryTitle>
+        <DateText>{fmtMain(centerDate)}</DateText>
 
         <DayList>
-          {days.map((item, index) => (
-            <DayItem key={item.day} onClick={() => setSelectedDay(index)}>
-              <DayName $active={selectedDay === index}>{item.day}</DayName>
-              <DateCircle $active={selectedDay === index}>
-                {item.date}
-              </DateCircle>
-            </DayItem>
-          ))}
+          <Arrow onClick={() => setWeekOffset((o) => o - 1)}>‹</Arrow>
+          {days.map((d, idx) => {
+            const active = idx === 2;
+            const future = d > today;
+            return (
+              <DayItem key={d.toISOString()} onClick={() => pickDay(idx)}>
+                <DayName $active={active} $future={future}>
+                  {weekEn(d)}
+                </DayName>
+                <DateCircle $active={active} $future={future}>
+                  {d.getDate()}
+                </DateCircle>
+              </DayItem>
+            );
+          })}
+          <Arrow
+            $disabled={weekOffset >= 0}
+            onClick={() => weekOffset < 0 && setWeekOffset((o) => o + 1)}
+          >
+            ›
+          </Arrow>
         </DayList>
 
-        <CardImage src={CloseFriendCard} alt="close friend card" />
+        {selectedIsToday ? (
+          <>
+            <CardWrap>
+              <CardImage src={cardSvg} alt="friend card" />
+              {activeDiary?.photo && (
+                <CardPhoto src={activeDiary.photo} alt="대표 사진" />
+              )}
+              <CardNo>
+                NO.<CardNoNum>{String(order).padStart(3, "0")}</CardNoNum>
+              </CardNo>
+            </CardWrap>
 
-        <MyTurnBox>
-          <MyTurnTitle>MY TURN</MyTurnTitle>
-          <MyTurnText>오늘 하루, 당신의 일상을 적어보세요</MyTurnText>
-
-          <WriteButton onClick={() => navigate("/diaryWrite")}>
-            일기 작성하러 가기
-          </WriteButton>
-        </MyTurnBox>
+            <MyTurnBox>
+              <MyTurnTitle>{turn.label}</MyTurnTitle>
+              {turn.isMine ? (
+                <>
+                  <MyTurnText>오늘 하루, 당신의 일상을 적어보세요</MyTurnText>
+                  <WriteButton onClick={() => navigate("/diaryWrite")}>
+                    일기 작성하러 가기
+                  </WriteButton>
+                </>
+              ) : (
+                <>
+                  <MyTurnText>
+                    친구가 교환일기를 작성하는 동안 그동안의 일기장을 구경하러
+                    가볼까요?
+                  </MyTurnText>
+                  <WriteButton onClick={() => navigate("/diaryLook")}>
+                    지난 기록 보기
+                  </WriteButton>
+                </>
+              )}
+            </MyTurnBox>
+          </>
+        ) : (
+          selectedIsPast && <DiaryLook embedded />
+        )}
       </Content>
-
-      <Footer />
     </Page>
   );
 }
@@ -86,12 +145,23 @@ const DateText = styled.p`
 
 const DayList = styled.div`
   display: flex;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 34px;
 `;
 
+const Arrow = styled.button`
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: ${({ $disabled }) => ($disabled ? 0.25 : 1)};
+`;
+
 const DayItem = styled.button`
-  width: 58px;
+  width: 52px;
   border: none;
   background: transparent;
   display: flex;
@@ -102,20 +172,22 @@ const DayItem = styled.button`
 
 const DayName = styled.p`
   color: white;
+  opacity: ${({ $future }) => ($future ? 0.35 : 1)};
   font-size: 12px;
   font-weight: ${({ $active }) => ($active ? 800 : 400)};
   margin-bottom: 12px;
 `;
 
 const DateCircle = styled.div`
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: ${({ $active }) =>
     $active ? "6px double #fff8e8" : "1.5px solid white"};
   background: ${({ $active }) =>
     $active ? "rgba(255, 255, 255, 0.18)" : "transparent"};
   color: white;
+  opacity: ${({ $future }) => ($future ? 0.35 : 1)};
   font-size: 18px;
   font-weight: 400;
   display: flex;
@@ -123,17 +195,47 @@ const DateCircle = styled.div`
   justify-content: center;
 `;
 
+const CardWrap = styled.div`
+  position: relative;
+  width: 350px;
+  height: 209px;
+  margin-bottom: 28px;
+`;
+
 const CardImage = styled.img`
   width: 350px;
   height: 209px;
   object-fit: cover;
   border-radius: 20px;
-  margin-bottom: 28px;
+`;
+
+const CardPhoto = styled.img`
+  position: absolute;
+  left: 10.6%;
+  top: 16.5%;
+  width: 31.9%;
+  height: 67.5%;
+  object-fit: cover;
+`;
+
+const CardNo = styled.span`
+  position: absolute;
+  left: 62%;
+  top: 43%;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #2e2621;
+`;
+
+const CardNoNum = styled.span`
+  font-family: "Post No Bills Jaffna", sans-serif;
+  font-weight: 800;
 `;
 
 const MyTurnBox = styled.div`
   width: 350px;
-  height: 211px;
+  min-height: 211px;
   background: #fff9e8;
   border-radius: 20px;
   padding: 34px 28px;
