@@ -1,17 +1,24 @@
-import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { FiImage } from "react-icons/fi";
 import Footer from "../../components/footer/Footer";
-import { useDiary, fmtMain } from "../../store/DiaryContext";
+import { useDiary } from "../../store/useDiary";
+import { fmtMain } from "../../utils/date";
 
 export default function DiaryWrite() {
   const navigate = useNavigate();
-  const { activeDiary, addEntry } = useDiary();
+  const { diaryId } = useParams();
+  const { activeDiary, getDiaryById, openDiary, addEntry } = useDiary();
+  const diary = getDiaryById(diaryId) || activeDiary;
   const fileInputRef = useRef(null);
   const [image, setImage] = useState(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+
+  useEffect(() => {
+    if (diaryId) openDiary(diaryId);
+  }, [diaryId, openDiary]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -24,15 +31,15 @@ export default function DiaryWrite() {
   // 작성 완료 -> 일기 추가 + 다음 사람 Turn 으로 전환
   const handleSubmit = () => {
     if (!content.trim() && !title.trim()) return;
-    addEntry(activeDiary.id, { title, content, photo: image });
-    navigate("/diaryMain");
+    addEntry(diary.id, { title, content, photo: image });
+    navigate(`/diary/${diary.id}`);
   };
 
   return (
     <Page>
       <Content>
         <Logo>SLAM BOOK</Logo>
-        <DiaryTitle>{activeDiary?.name}</DiaryTitle>
+        <DiaryTitle>{diary?.name}</DiaryTitle>
         <DateText>{fmtMain(new Date())}</DateText>
 
         <WriteCard>

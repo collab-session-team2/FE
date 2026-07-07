@@ -1,6 +1,9 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { useDiary, fmtMain, fmtEntry } from "../../store/DiaryContext";
+import { useDiary } from "../../store/useDiary";
+import { fmtEntry, fmtMain } from "../../utils/date";
 
 const C = {
   bg: "#3C2A21",
@@ -35,12 +38,18 @@ const ImageIcon = () => (
 
 export default function DiaryLook({ embedded = false }) {
   const navigate = useNavigate();
-  const { activeDiary, openEntry } = useDiary();
-  const entries = activeDiary?.entries || [];
+  const { diaryId } = useParams();
+  const { activeDiary, getDiaryById, openDiary, openEntry } = useDiary();
+  const diary = getDiaryById(diaryId) || activeDiary;
+  const entries = diary?.entries || [];
+
+  useEffect(() => {
+    if (diaryId) openDiary(diaryId);
+  }, [diaryId, openDiary]);
 
   const goDetail = (entryId) => {
-    openEntry(activeDiary.id, entryId);
-    navigate("/diaryDetail");
+    openEntry(diary.id, entryId);
+    navigate(`/diary/${diary.id}/entry/${entryId}`);
   };
 
   const list = (
@@ -73,7 +82,7 @@ export default function DiaryLook({ embedded = false }) {
     <Page>
       <Header>
         <Brand>SLAM BOOK</Brand>
-        <RoomTitle>{activeDiary?.name}</RoomTitle>
+        <RoomTitle>{diary?.name}</RoomTitle>
         <RoomDate>{fmtMain(new Date())}</RoomDate>
       </Header>
       {list}

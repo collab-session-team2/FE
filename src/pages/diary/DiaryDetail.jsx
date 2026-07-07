@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import styled, { css } from "styled-components";
-import { useDiary, fmtEntry } from "../../store/DiaryContext";
+import { useDiary } from "../../store/useDiary";
+import { fmtEntry } from "../../utils/date";
 
 const C = {
   bg: "#3C2A21",
@@ -79,17 +80,33 @@ const UserIcon = () => (
 
 export default function DiaryDetail() {
   const navigate = useNavigate();
-  const { activeDiary, activeEntry, toggleLike, addComment } = useDiary();
+  const { diaryId, entryId } = useParams();
+  const {
+    activeDiary,
+    activeEntry,
+    getDiaryById,
+    getEntryById,
+    openDiary,
+    openEntry,
+    toggleLike,
+    addComment,
+  } = useDiary();
+  const diary = getDiaryById(diaryId) || activeDiary;
   const [expanded, setExpanded] = useState(false);
   const [input, setInput] = useState("");
   const [showComments, setShowComments] = useState(false);
 
-  const entry = activeEntry;
+  const entry = getEntryById(diaryId, entryId) || activeEntry;
   const comments = entry?.comments || [];
+
+  useEffect(() => {
+    if (diaryId) openDiary(diaryId);
+    if (diaryId && entryId) openEntry(diaryId, entryId);
+  }, [diaryId, entryId, openDiary, openEntry]);
 
   const handleSend = () => {
     if (!input.trim() || !entry) return;
-    addComment(activeDiary.id, entry.id, input);
+    addComment(diary.id, entry.id, input);
     setInput("");
   };
 
@@ -121,7 +138,7 @@ export default function DiaryDetail() {
           </ImageBox>
 
           <Stats>
-            <Stat onClick={() => toggleLike(activeDiary.id, entry.id)}>
+            <Stat onClick={() => toggleLike(diary.id, entry.id)}>
               <HeartIcon $filled={entry.liked} /> 좋아요 {entry.likes}
             </Stat>
             <Stat onClick={() => setShowComments((v) => !v)}>

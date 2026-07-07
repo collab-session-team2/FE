@@ -1,21 +1,38 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
+import BestFriendCard from "../../assets/images/BestFriend.svg";
 import CloseFriendCard from "../../assets/images/closeFriend.svg";
 import CasualFriendCard from "../../assets/images/casualFriend.svg";
+import RideOrDieCard from "../../assets/images/RideorDie.svg";
 import DiaryLook from "./DiaryLook";
+import { useDiary } from "../../store/useDiary";
+import { getLevelInfo } from "../../utils/level";
 import {
-  useDiary,
-  startOfDay,
   addDays,
-  isSameDay,
-  weekEn,
   fmtMain,
-} from "../../store/DiaryContext";
+  isSameDay,
+  startOfDay,
+  weekEn,
+} from "../../utils/date";
+
+const FRIEND_CARD_BY_LEVEL = {
+  1: CasualFriendCard,
+  2: CloseFriendCard,
+  3: BestFriendCard,
+  4: RideOrDieCard,
+};
 
 export default function DiaryMain() {
   const navigate = useNavigate();
-  const { activeDiary, getTurn } = useDiary();
+  const { diaryId } = useParams();
+  const { activeDiary, activeTotalPoint, getDiaryById, getTurn, openDiary } =
+    useDiary();
+  const diary = getDiaryById(diaryId) || activeDiary;
+
+  useEffect(() => {
+    if (diaryId) openDiary(diaryId);
+  }, [diaryId, openDiary]);
 
   const today = startOfDay(new Date());
   const [weekOffset, setWeekOffset] = useState(0); // 0 = 오늘이 가운데
@@ -33,16 +50,17 @@ export default function DiaryMain() {
     setWeekOffset(next);
   };
 
-  const turn = getTurn(activeDiary);
-  const order = activeDiary?.order || 1;
-  const cardSvg = order === 1 ? CasualFriendCard : CloseFriendCard;
+  const turn = getTurn(diary);
+  const order = diary?.order || 1;
+  const levelInfo = getLevelInfo(activeTotalPoint);
+  const cardSvg = FRIEND_CARD_BY_LEVEL[levelInfo.level] || CasualFriendCard;
 
   return (
     <Page>
       <Content>
         <Logo>SLAM BOOK</Logo>
 
-        <DiaryTitle>{activeDiary?.name}</DiaryTitle>
+        <DiaryTitle>{diary?.name}</DiaryTitle>
         <DateText>{fmtMain(centerDate)}</DateText>
 
         <DayList>
@@ -73,8 +91,8 @@ export default function DiaryMain() {
           <>
             <CardWrap>
               <CardImage src={cardSvg} alt="friend card" />
-              {activeDiary?.photo && (
-                <CardPhoto src={activeDiary.photo} alt="대표 사진" />
+              {diary?.photo && (
+                <CardPhoto src={diary.photo} alt="대표 사진" />
               )}
               <CardNo>
                 NO.<CardNoNum>{String(order).padStart(3, "0")}</CardNoNum>
@@ -86,7 +104,7 @@ export default function DiaryMain() {
               {turn.isMine ? (
                 <>
                   <MyTurnText>오늘 하루, 당신의 일상을 적어보세요</MyTurnText>
-                  <WriteButton onClick={() => navigate("/diaryWrite")}>
+                  <WriteButton onClick={() => navigate(`/diary/${diary.id}/write`)}>
                     일기 작성하러 가기
                   </WriteButton>
                 </>
@@ -96,7 +114,7 @@ export default function DiaryMain() {
                     친구가 교환일기를 작성하는 동안 그동안의 일기장을 구경하러
                     가볼까요?
                   </MyTurnText>
-                  <WriteButton onClick={() => navigate("/diaryLook")}>
+                  <WriteButton onClick={() => navigate(`/diary/${diary.id}/look`)}>
                     지난 기록 보기
                   </WriteButton>
                 </>

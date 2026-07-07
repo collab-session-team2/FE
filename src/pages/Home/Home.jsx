@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Footer from "../../components/footer/Footer";
 import { FiPlus } from "react-icons/fi";
-import { useDiary } from "../../store/DiaryContext";
+import { useDiary } from "../../store/useDiary";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ export default function Home() {
   // 일기장 클릭 -> 해당 방 열고 DiaryMain 이동
   const goDiary = (id) => {
     openDiary(id);
-    navigate("/diaryMain");
+    navigate(`/diary/${id}`);
   };
 
   return (

@@ -2,14 +2,15 @@ import { useState, useRef } from "react";
 import styled from "styled-components";
 import { FiImage } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import { useDiary } from "../../store/DiaryContext";
+import { useDiary } from "../../store/useDiary";
 
 export default function RoomCreate() {
   const navigate = useNavigate();
-  const { createRoom } = useDiary();
+  const { createRoom, openDiary } = useDiary();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [roomCode, setRoomCode] = useState("");
+  const [createdRoomId, setCreatedRoomId] = useState(null);
 
   const [roomName, setRoomName] = useState("");
   // 선택된 인원수
@@ -26,17 +27,23 @@ export default function RoomCreate() {
   const handleCreateRoom = () => {
     if (!isFormComplete) return;
     // 방코드 발급 + 전체 유저 기준 생성 순번 배정
-    const { code } = createRoom({
+    const { code, id } = createRoom({
       name: roomName,
       peopleCount: selectedPeople || 4,
       photo: imagePreview,
     });
     setRoomCode(code);
+    setCreatedRoomId(id);
     setIsModalOpen(true);
   };
 
   const handleConfirm = () => {
     setIsModalOpen(false);
+    if (createdRoomId) {
+      openDiary(createdRoomId);
+      navigate(`/diary/${createdRoomId}`);
+      return;
+    }
     navigate("/");
   };
 
