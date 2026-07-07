@@ -4,6 +4,7 @@ import styled, { css } from "styled-components";
 import { useDiary } from "../../store/useDiary";
 import { fmtEntry } from "../../utils/date";
 import { getDiary } from "../../api/diary";
+import { getComments, createComment } from "../../api/comment";
 
 const C = {
   bg: "#3C2A21",
@@ -100,10 +101,13 @@ export default function DiaryDetail() {
   );
   const [error, setError] = useState(null);
 
-  // TODO: 확인 필요 - 좋아요/댓글 관련 백엔드 API가 문서에 없어 로컬 상태로만 동작(미저장)
+  // TODO: 확인 필요 - 좋아요 관련 백엔드 API가 문서에 없어 로컬 상태로만 동작(미저장)
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(0);
+
+  // 댓글: 서버 연동 (GET /api/comments?diaryId, POST /api/comments?diaryId)
   const [comments, setComments] = useState([]);
+  const [sending, setSending] = useState(false);
 
   // URL 직접 접근 시에도 컨텍스트를 동기화
   useEffect(() => {
@@ -126,19 +130,38 @@ export default function DiaryDetail() {
     };
   }, [targetDiaryId, seededEntry]);
 
+  // 상세 진입 시 해당 일기의 댓글 목록 조회
+  useEffect(() => {
+    if (!targetDiaryId) return;
+    let mounted = true;
+    getComments(targetDiaryId)
+      .then((res) => mounted && setComments(res || []))
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, [targetDiaryId]);
+
   const toggleLike = () => {
     setLiked((prev) => !prev);
     setLikes((prev) => (liked ? prev - 1 : prev + 1));
   };
 
-  const handleSend = () => {
-    if (!input.trim() || !entry) return;
-    // TODO: 확인 필요 - 댓글 저장 API 없음. 우선 화면 로컬에만 추가.
-    setComments((prev) => [
-      ...prev,
-      { id: Date.now(), author: "나", time: "방금 전", text: input.trim() },
-    ]);
-    setInput("");
+  // 댓글 등록: 성공 시 반환된 댓글을 목록에 즉시 append + 입력창 초기화
+  const handleSend = async () => {
+    const content = input.trim();
+    if (!content || sending || !targetDiaryId) return;
+
+    setSending(true);
+    try {
+      const created = await createComment(targetDiaryId, { content });
+      setComments((prev) => [...prev, created]);
+      setInput("");
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setSending(false);
+    }
   };
 
   if (loading) return null;
@@ -202,19 +225,19 @@ export default function DiaryDetail() {
 
           {showComments && (
             <>
-              <CommentLabel>댓글</CommentLabel>
+              <CommentLabel>댓글 {comments.length}</CommentLabel>
+              {comments.length === 0 && (
+                <EmptyComment>첫 댓글을 남겨보세요.</EmptyComment>
+              )}
               {comments.map((c) => (
-                <CommentCard key={c.id}>
+                <CommentCard key={c.commentId}>
                   <CommentHead>
                     <Avatar>
                       <UserIcon />
                     </Avatar>
-                    <div>
-                      <CName>{c.author}</CName>
-                      <CTime>{c.time}</CTime>
-                    </div>
+                    <CName>{c.userName}</CName>
                   </CommentHead>
-                  <CText>{c.text}</CText>
+                  <CText>{c.content}</CText>
                 </CommentCard>
               ))}
             </>
@@ -230,7 +253,7 @@ export default function DiaryDetail() {
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             placeholder="댓글을 입력해주세요."
           />
-          <SendBtn onClick={handleSend} aria-label="댓글 전송">
+          <SendBtn onClick={handleSend} disabled={sending} aria-label="댓글 전송">
             <SendIcon />
           </SendBtn>
         </InputBar>
@@ -411,10 +434,10 @@ const CName = styled.p`
   margin: 0;
 `;
 
-const CTime = styled.p`
-  font-size: 13px;
+const EmptyComment = styled.p`
+  font-size: 14px;
   color: ${C.muted};
-  margin: 2px 0 0;
+  margin: 0 0 12px;
 `;
 
 const CText = styled.p`
@@ -435,6 +458,8 @@ const InputBar = styled.div`
   gap: 12px;
   padding: 14px 20px 22px;
   background: ${C.bg};
+  /* 댓글 입력 시 하단 Footer(z-index:100) 위로 올려 클릭/입력 가능하게 */
+  z-index: 300;
 `;
 
 const CommentInput = styled.input`

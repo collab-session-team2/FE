@@ -5,7 +5,13 @@ import CasualFriendCard from "../../assets/images/casualFriend.svg";
 import CloseFriendCard from "../../assets/images/closeFriend.svg";
 import DiaryLook from "./DiaryLook";
 import { useDiary } from "../../store/useDiary";
-import { addDays, fmtMain, isSameDay, startOfDay, weekEn } from "../../utils/date";
+import {
+  addDays,
+  fmtMain,
+  isSameDay,
+  startOfDay,
+  weekEn,
+} from "../../utils/date";
 import { getDiaryRoomDetail } from "../../api/diaryRoom";
 
 export default function DiaryMain() {
@@ -116,7 +122,9 @@ export default function DiaryMain() {
               {turn.isMine ? (
                 <>
                   <MyTurnText>오늘 하루, 당신의 일상을 적어보세요</MyTurnText>
-                  <WriteButton onClick={() => navigate(`/diary/${roomId}/write`)}>
+                  <WriteButton
+                    onClick={() => navigate(`/diary/${roomId}/write`)}
+                  >
                     일기 작성하러 가기
                   </WriteButton>
                 </>
@@ -126,7 +134,9 @@ export default function DiaryMain() {
                     친구가 교환일기를 작성하는 동안 그동안의 일기장을 구경하러
                     가볼까요?
                   </MyTurnText>
-                  <WriteButton onClick={() => navigate(`/diary/${roomId}/look`)}>
+                  <WriteButton
+                    onClick={() => navigate(`/diary/${roomId}/look`)}
+                  >
                     지난 기록 보기
                   </WriteButton>
                 </>
@@ -241,8 +251,8 @@ const CardImage = styled.img`
 
 const CardPhoto = styled.img`
   position: absolute;
-  left: 10.6%;
-  top: 16.5%;
+  left: 8.7%;
+  top: 16.6%;
   width: 31.9%;
   height: 67.5%;
   object-fit: cover;

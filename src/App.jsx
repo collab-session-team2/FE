@@ -28,13 +28,14 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
 
-          {/* 공통 레이아웃 */}
+          {/* 공통 레이아웃 (푸터 포함) */}
           <Route element={<RootLayout />}>
-            {/* 시작 페이지(공개): 로그인 없이도 볼 수 있음 */}
-            <Route path="/" element={<Home />} />
-
-            {/* 로그인 필요: 미로그인 시 /login 으로 이동 */}
+            {/* 전 구간 로그인 필요: 미로그인 시 /login 으로 이동.
+                → 첫 진입(/)도 로그인해야 Home 이 보인다. */}
             <Route element={<RequireAuth />}>
+              {/* 시작 페이지: 로그인 후 Home */}
+              <Route path="/" element={<Home />} />
+
               <Route path="/create" element={<RoomCreate />} />
 
               <Route path="/mission" element={<MissionPage />} />
@@ -61,6 +62,11 @@ function App() {
             <Route path="/diaryWrite" element={<Navigate to="/" replace />} />
             <Route path="/diaryLook" element={<Navigate to="/" replace />} />
             <Route path="/diaryDetail" element={<Navigate to="/" replace />} />
+
+            {/* 그 외/미구현 경로(예: 푸터 마이페이지)는 홈으로.
+                → 로그인 안 됐으면 /(RequireAuth)에서 다시 /login 으로 유도된다.
+                TODO: 마이페이지 화면이 생기면 /mypage 라우트를 추가하고 제외 */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
       </BrowserRouter>
