@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { useDiary, fmtEntry } from "../../store/DiaryContext";
+import { getDiaryDetail } from "../../api/diary";
 
 const C = {
   bg: "#3C2A21",
@@ -79,20 +80,64 @@ const UserIcon = () => (
 
 export default function DiaryDetail() {
   const navigate = useNavigate();
-  const { activeDiary, activeEntry, toggleLike, addComment } = useDiary();
+  const { activeDiaryId } = useDiary();
   const [expanded, setExpanded] = useState(false);
   const [input, setInput] = useState("");
   const [showComments, setShowComments] = useState(false);
 
-  const entry = activeEntry;
-  const comments = entry?.comments || [];
+  // 일기 상세 조회 상태
+  const [entry, setEntry] = useState(null);
+  const [loading, setLoading] = useState(Boolean(activeDiaryId));
+  const [error, setError] = useState(null);
+
+  // TODO: 확인 필요 - 좋아요/댓글 관련 백엔드 API가 문서에 없어 로컬 상태로만 동작(미저장)
+  const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState(0);
+  const [comments, setComments] = useState([]);
+
+  useEffect(() => {
+    if (!activeDiaryId) return;
+    let mounted = true;
+    getDiaryDetail(activeDiaryId)
+      .then((res) => mounted && setEntry(res))
+      .catch((e) => mounted && setError(e.message))
+      .finally(() => mounted && setLoading(false));
+    return () => {
+      mounted = false;
+    };
+  }, [activeDiaryId]);
+
+  const toggleLike = () => {
+    setLiked((prev) => !prev);
+    setLikes((prev) => (liked ? prev - 1 : prev + 1));
+  };
 
   const handleSend = () => {
     if (!input.trim() || !entry) return;
-    addComment(activeDiary.id, entry.id, input);
+    // TODO: 확인 필요 - 댓글 저장 API 없음. 우선 화면 로컬에만 추가.
+    setComments((prev) => [
+      ...prev,
+      { id: Date.now(), author: "나", time: "방금 전", text: input.trim() },
+    ]);
     setInput("");
   };
 
+  if (loading) return null;
+  if (error) {
+    return (
+      <Page>
+        <TopBar>
+          <BackBtn onClick={() => navigate(-1)} aria-label="뒤로가기">
+            <ChevronLeft />
+          </BackBtn>
+          <TopTitle>일기 기록</TopTitle>
+        </TopBar>
+        <Content>
+          <TopTitle>{error}</TopTitle>
+        </Content>
+      </Page>
+    );
+  }
   if (!entry) return null;
 
   return (
@@ -110,19 +155,23 @@ export default function DiaryDetail() {
             <Avatar>
               <UserIcon />
             </Avatar>
-            <AuthorName>{entry.authorName}</AuthorName>
+            <AuthorName>{entry.userName}</AuthorName>
           </AuthorRow>
 
           <Title>{entry.title}</Title>
-          <DateText>{fmtEntry(new Date(entry.date))}</DateText>
+          <DateText>{fmtEntry(new Date(entry.targetDate))}</DateText>
 
           <ImageBox>
-            {entry.photo ? <ImageBoxImg src={entry.photo} alt="" /> : "이미지"}
+            {entry.diaryImage ? (
+              <ImageBoxImg src={entry.diaryImage} alt="" />
+            ) : (
+              "이미지"
+            )}
           </ImageBox>
 
           <Stats>
-            <Stat onClick={() => toggleLike(activeDiary.id, entry.id)}>
-              <HeartIcon $filled={entry.liked} /> 좋아요 {entry.likes}
+            <Stat onClick={toggleLike}>
+              <HeartIcon $filled={liked} /> 좋아요 {likes}
             </Stat>
             <Stat onClick={() => setShowComments((v) => !v)}>
               <CommentIcon /> 댓글 {comments.length}

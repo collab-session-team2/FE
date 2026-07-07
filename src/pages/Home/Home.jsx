@@ -1,17 +1,43 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Footer from "../../components/footer/Footer";
 import { FiPlus } from "react-icons/fi";
 import { useDiary } from "../../store/DiaryContext";
+import { getDiaryRooms, joinDiaryRoom } from "../../api/diaryRoom";
 
 export default function Home() {
   const navigate = useNavigate();
-  const { diaries, joinRoom, openDiary } = useDiary();
+  const { openDiary } = useDiary();
+
+  // 방 목록 조회 상태
+  const [diaries, setDiaries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // 모달 단계: null | "choice" | "code"
   const [modalStep, setModalStep] = useState(null);
   const [code, setCode] = useState("");
+
+  // 방 목록 조회
+  const fetchRooms = () => {
+    setLoading(true);
+    return getDiaryRooms()
+      .then((res) => setDiaries(res || []))
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    getDiaryRooms()
+      .then((res) => mounted && setDiaries(res || []))
+      .catch((e) => mounted && setError(e.message))
+      .finally(() => mounted && setLoading(false));
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const openChoiceModal = () => setModalStep("choice");
   const closeModal = () => {
@@ -25,11 +51,16 @@ export default function Home() {
     navigate("/create");
   };
 
-  // 코드로 참여하기 -> 일기장 카드 추가
-  const joinByCode = () => {
+  // 코드로 참여하기 -> 참여 후 방 목록 리페치
+  const joinByCode = async () => {
     if (!code.trim()) return;
-    joinRoom({ code: code.trim() });
-    closeModal();
+    try {
+      await joinDiaryRoom(code.trim());
+      closeModal();
+      await fetchRooms();
+    } catch (e) {
+      setError(e.message);
+    }
   };
 
   // 일기장 클릭 -> 해당 방 열고 DiaryMain 이동
@@ -48,7 +79,16 @@ export default function Home() {
           </AddButton>
         </Header>
 
-        {diaries.length === 0 ? (
+        {loading ? (
+          <EmptyBox>
+            <EmptyText>불러오는 중...</EmptyText>
+          </EmptyBox>
+        ) : error ? (
+          <EmptyBox>
+            <EmptyText>일기장을 불러오지 못했어요</EmptyText>
+            <EmptySubText>{error}</EmptySubText>
+          </EmptyBox>
+        ) : diaries.length === 0 ? (
           <EmptyBox>
             <EmptyText>아직 생성된 일기장이 없어요</EmptyText>
             <EmptySubText>+ 버튼을 눌러 일기장을 만들어보세요</EmptySubText>
@@ -56,12 +96,15 @@ export default function Home() {
         ) : (
           <Grid>
             {diaries.map((diary) => (
-              <DiaryCard key={diary.id} onClick={() => goDiary(diary.id)}>
+              <DiaryCard
+                key={diary.diaryRoomId}
+                onClick={() => goDiary(diary.diaryRoomId)}
+              >
                 <CardInner>
-                  <CardImage $src={diary.photo} />
+                  <CardImage $src={diary.diaryRoomImage} />
                   <CardTab />
                 </CardInner>
-                <CardLabel>{diary.name}</CardLabel>
+                <CardLabel>{diary.diaryRoomName}</CardLabel>
               </DiaryCard>
             ))}
           </Grid>

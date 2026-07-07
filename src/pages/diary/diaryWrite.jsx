@@ -1,38 +1,77 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { FiImage } from "react-icons/fi";
 import Footer from "../../components/footer/Footer";
 import { useDiary, fmtMain } from "../../store/DiaryContext";
+import { getDiaryRoomDetail } from "../../api/diaryRoom";
+import { createDiary } from "../../api/diary";
+import { uploadImage } from "../../api/image";
 
 export default function DiaryWrite() {
   const navigate = useNavigate();
-  const { activeDiary, addEntry } = useDiary();
+  const { activeRoomId } = useDiary();
   const fileInputRef = useRef(null);
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState(null); // 미리보기 URL
+  const [imageFile, setImageFile] = useState(null); // 업로드용 파일
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+
+  // 방 이름/내 차례 여부 조회
+  const [detail, setDetail] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!activeRoomId) return;
+    let mounted = true;
+    getDiaryRoomDetail(activeRoomId)
+      .then((res) => mounted && setDetail(res))
+      .catch((e) => mounted && setError(e.message));
+    return () => {
+      mounted = false;
+    };
+  }, [activeRoomId]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
 
     if (!file) return;
 
+    setImageFile(file);
     setImage(URL.createObjectURL(file));
   };
 
-  // 작성 완료 -> 일기 추가 + 다음 사람 Turn 으로 전환
-  const handleSubmit = () => {
+  // 작성 완료 -> 이미지 업로드 후 일기 등록
+  const handleSubmit = async () => {
     if (!content.trim() && !title.trim()) return;
-    addEntry(activeDiary.id, { title, content, photo: image });
-    navigate("/diaryMain");
+    if (submitting) return;
+    // 내 차례가 아니면 작성 불가 (myTurn === false)
+    if (detail && !detail.myTurn) {
+      setError("아직 내 차례가 아니에요.");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      let diaryImage = null;
+      if (imageFile) {
+        const uploaded = await uploadImage(imageFile, "DIARY");
+        diaryImage = uploaded.imageUrl;
+      }
+      await createDiary(activeRoomId, { title, content, diaryImage });
+      navigate("/diaryMain");
+    } catch (e) {
+      setError(e.message);
+      setSubmitting(false);
+    }
   };
 
   return (
     <Page>
       <Content>
         <Logo>SLAM BOOK</Logo>
-        <DiaryTitle>{activeDiary?.name}</DiaryTitle>
+        <DiaryTitle>{detail?.diaryRoomName}</DiaryTitle>
         <DateText>{fmtMain(new Date())}</DateText>
 
         <WriteCard>
@@ -65,7 +104,10 @@ export default function DiaryWrite() {
             onChange={(e) => setContent(e.target.value)}
           />
 
-          <SubmitButton onClick={handleSubmit}>작성 완료</SubmitButton>
+          <SubmitButton onClick={handleSubmit} disabled={submitting}>
+            {submitting ? "등록 중..." : "작성 완료"}
+          </SubmitButton>
+          {error && <ErrorText>{error}</ErrorText>}
         </WriteCard>
       </Content>
 
@@ -184,4 +226,10 @@ const SubmitButton = styled.button`
   font-weight: 400;
   margin-top: 20px;
   cursor: pointer;
+`;
+
+const ErrorText = styled.p`
+  color: #c0392b;
+  font-size: 13px;
+  margin-top: 10px;
 `;
