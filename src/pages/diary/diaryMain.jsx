@@ -4,7 +4,7 @@ import styled from "styled-components";
 import Footer from "../../components/footer/Footer";
 import CloseFriendCard from "../../assets/images/closeFriend.svg";
 
-export default function Diary() {
+export default function DiaryMain() {
   const navigate = useNavigate();
   const [selectedDay, setSelectedDay] = useState(2);
 
@@ -41,7 +41,7 @@ export default function Diary() {
           <MyTurnTitle>MY TURN</MyTurnTitle>
           <MyTurnText>오늘 하루, 당신의 일상을 적어보세요</MyTurnText>
 
-          <WriteButton onClick={() => navigate("/diary/write")}>
+          <WriteButton onClick={() => navigate("/diaryWrite")}>
             일기 작성하러 가기
           </WriteButton>
         </MyTurnBox>
@@ -166,7 +166,7 @@ const WriteButton = styled.button`
   background: #102550;
   color: white;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
   font-family: "SUITE", sans-serif;
 `;
