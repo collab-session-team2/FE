@@ -1,46 +1,52 @@
-import { createContext, useContext, useState } from "react";
+import { useCallback, useState } from "react";
+import { DiaryContext } from "./diaryContextValue";
 
-// 날짜 유틸
-const pad = (n) => String(n).padStart(2, "0");
-export const startOfDay = (d) => {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-};
-export const addDays = (d, n) => {
-  const x = startOfDay(d);
-  x.setDate(x.getDate() + n);
-  return x;
-};
-export const isSameDay = (a, b) =>
-  startOfDay(a).getTime() === startOfDay(b).getTime();
-const WEEK_EN = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-const WEEK_KO = ["일", "월", "화", "수", "목", "금", "토"];
-export const weekEn = (d) => WEEK_EN[new Date(d).getDay()];
-export const weekKo = (d) => WEEK_KO[new Date(d).getDay()];
-export const fmtMain = (d) =>
-  `${pad(d.getMonth() + 1)}.${pad(d.getDate())}.${d.getFullYear()}`;
-export const fmtEntry = (d) =>
-  `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}.${weekKo(d)}`;
-
-const DiaryContext = createContext(null);
-
-// 화면 간 이동에 필요한 "현재 방/일기" 식별자만 보관한다.
-// 실제 데이터(방 목록/상세/일기)는 각 화면에서 API로 조회한다.
+// 화면 간 이동에 필요한 "현재 방/일기" 식별자와 미션 진행 상태만 보관한다.
+// 방 목록/상세/일기 등 실제 데이터는 각 화면에서 API로 조회한다.
 export function DiaryProvider({ children }) {
+  // 현재 열려 있는 방/일기 식별자 (화면 이동용)
   const [activeRoomId, setActiveRoomId] = useState(null); // diaryRoomId
   const [activeDiaryId, setActiveDiaryId] = useState(null); // diaryId
 
-  // 방 열기 (Home 카드 클릭 등)
-  const openDiary = (diaryRoomId) => {
+  // 방 열기 (Home 카드 클릭, 방 생성 완료 등)
+  const openDiary = useCallback((diaryRoomId) => {
     setActiveRoomId(diaryRoomId);
     setActiveDiaryId(null);
-  };
+  }, []);
 
   // 일기 상세 열기
-  const openEntry = (diaryRoomId, diaryId) => {
+  const openEntry = useCallback((diaryRoomId, diaryId) => {
     setActiveRoomId(diaryRoomId);
     setActiveDiaryId(diaryId);
+  }, []);
+
+  // 미션 진행 상태: MissionPage에서 API로 불러와 캐시하고,
+  // MissionVerifyPage에서 조회/완료 처리에 사용한다.
+  const [activeMissions, setActiveMissions] = useState([]);
+  const [activeTotalPoint, setActiveTotalPoint] = useState(0);
+
+  const setMissionData = useCallback(({ missions, totalPoint }) => {
+    setActiveMissions(missions);
+    setActiveTotalPoint(totalPoint);
+  }, []);
+
+  const getMissionById = (missionId) =>
+    activeMissions.find((m) => String(m.id) === String(missionId)) || null;
+
+  const completeMission = (missionId) => {
+    const target = activeMissions.find(
+      (m) => String(m.id) === String(missionId),
+    );
+
+    setActiveMissions((prev) =>
+      prev.map((m) =>
+        String(m.id) !== String(missionId) ? m : { ...m, completed: true },
+      ),
+    );
+
+    if (target && !target.completed) {
+      setActiveTotalPoint((prev) => prev + target.point);
+    }
   };
 
   return (
@@ -50,11 +56,14 @@ export function DiaryProvider({ children }) {
         activeDiaryId,
         openDiary,
         openEntry,
+        activeMissions,
+        activeTotalPoint,
+        setMissionData,
+        getMissionById,
+        completeMission,
       }}
     >
       {children}
     </DiaryContext.Provider>
   );
 }
-
-export const useDiary = () => useContext(DiaryContext);

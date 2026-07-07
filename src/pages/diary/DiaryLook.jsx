@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { useDiary, fmtMain, fmtEntry } from "../../store/DiaryContext";
+import { useDiary } from "../../store/useDiary";
+import { fmtEntry, fmtMain } from "../../utils/date";
 import { getDiaryRoomDetail } from "../../api/diaryRoom";
 import { getDiaries } from "../../api/diary";
 
@@ -72,7 +73,7 @@ export default function DiaryLook({ embedded = false }) {
 
   const goDetail = (diaryId) => {
     openEntry(activeRoomId, diaryId);
-    navigate("/diaryDetail");
+    navigate(`/diary/${activeRoomId}/entry/${diaryId}`);
   };
 
   const list = (

@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { FiImage } from "react-icons/fi";
-import { useDiary, fmtMain } from "../../store/DiaryContext";
+import { useDiary } from "../../store/useDiary";
+import { fmtMain } from "../../utils/date";
 import { getDiaryRoomDetail } from "../../api/diaryRoom";
 import { createDiary } from "../../api/diary";
 import { uploadImage } from "../../api/image";
@@ -41,10 +42,10 @@ export default function DiaryWrite() {
     setImage(URL.createObjectURL(file));
   };
 
-  // 작성 완료 -> 이미지 업로드 후 일기 등록
+  // 작성 완료 -> 이미지 먼저 업로드해 URL 획득 후 일기 등록
   const handleSubmit = async () => {
-    if (!content.trim() && !title.trim()) return;
     if (submitting) return;
+    if (!content.trim() && !title.trim()) return;
     // 내 차례가 아니면 작성 불가 (myTurn === false)
     if (detail && !detail.myTurn) {
       setError("아직 내 차례가 아니에요.");
@@ -59,7 +60,7 @@ export default function DiaryWrite() {
         diaryImage = uploaded.imageUrl;
       }
       await createDiary(activeRoomId, { title, content, diaryImage });
-      navigate("/diaryMain");
+      navigate(`/diary/${activeRoomId}`);
     } catch (e) {
       setError(e.message);
       setSubmitting(false);

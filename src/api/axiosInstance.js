@@ -41,6 +41,7 @@ api.interceptors.response.use(
       clearAccessToken();
       emitAuthRequired();
     }
+    // 서버가 { success:false, message } 형태로 에러 줄 수 있음
     const msg = error?.response?.data?.message || error.message;
     return Promise.reject(new Error(msg));
   }

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import styled, { css } from "styled-components";
-import { useDiary, fmtEntry } from "../../store/DiaryContext";
+import { useDiary } from "../../store/useDiary";
+import { fmtEntry } from "../../utils/date";
 import { getDiaryDetail } from "../../api/diary";
 
 const C = {
@@ -80,14 +81,17 @@ const UserIcon = () => (
 
 export default function DiaryDetail() {
   const navigate = useNavigate();
-  const { activeDiaryId } = useDiary();
+  // 라우트: /diary/:diaryId/entry/:entryId (diaryId=방, entryId=일기)
+  const { diaryId, entryId } = useParams();
+  const { activeDiaryId, openDiary, openEntry } = useDiary();
+
   const [expanded, setExpanded] = useState(false);
   const [input, setInput] = useState("");
   const [showComments, setShowComments] = useState(false);
 
   // 일기 상세 조회 상태
   const [entry, setEntry] = useState(null);
-  const [loading, setLoading] = useState(Boolean(activeDiaryId));
+  const [loading, setLoading] = useState(Boolean(activeDiaryId || entryId));
   const [error, setError] = useState(null);
 
   // TODO: 확인 필요 - 좋아요/댓글 관련 백엔드 API가 문서에 없어 로컬 상태로만 동작(미저장)
@@ -95,17 +99,25 @@ export default function DiaryDetail() {
   const [likes, setLikes] = useState(0);
   const [comments, setComments] = useState([]);
 
+  // URL 직접 접근 시에도 컨텍스트를 동기화
   useEffect(() => {
-    if (!activeDiaryId) return;
+    if (diaryId && entryId) openEntry(diaryId, entryId);
+    else if (diaryId) openDiary(diaryId);
+  }, [diaryId, entryId, openDiary, openEntry]);
+
+  const targetDiaryId = activeDiaryId || entryId;
+
+  useEffect(() => {
+    if (!targetDiaryId) return;
     let mounted = true;
-    getDiaryDetail(activeDiaryId)
+    getDiaryDetail(targetDiaryId)
       .then((res) => mounted && setEntry(res))
       .catch((e) => mounted && setError(e.message))
       .finally(() => mounted && setLoading(false));
     return () => {
       mounted = false;
     };
-  }, [activeDiaryId]);
+  }, [targetDiaryId]);
 
   const toggleLike = () => {
     setLiked((prev) => !prev);

@@ -1,11 +1,111 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
-import { missionData } from "../../data/missionData";
-import { getLevelInfo } from "../../utils/level";
 import MissionCard from "../../components/mission/MissionCard";
 import MissionDropdown from "../../components/mission/MissionDropdown";
+import { fetchMissions } from "../../api/missionApi";
+import { useDiary } from "../../store/useDiary";
+import { getLevelInfo } from "../../utils/level";
+
+function MissionPage() {
+  const navigate = useNavigate();
+  const { activeMissions, activeTotalPoint, setMissionData } = useDiary();
+  const [selectedDifficulty, setSelectedDifficulty] = useState("Easy");
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadMissions = async () => {
+      setIsLoading(true);
+      setErrorMessage("");
+
+      try {
+        const loadedMissionData = await fetchMissions();
+        if (!ignore) setMissionData(loadedMissionData);
+      } catch (error) {
+        if (!ignore) {
+          setErrorMessage(error.message);
+          setMissionData({ missions: [], totalPoint: 0 });
+        }
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    };
+
+    loadMissions();
+
+    return () => {
+      ignore = true;
+    };
+  }, [setMissionData]);
+
+  const levelInfo = getLevelInfo(activeTotalPoint);
+  const progressPercent =
+    (levelInfo.currentPoint / levelInfo.requiredPoint) * 100;
+
+  const sortedMissions = [...activeMissions].sort((a, b) => {
+    if (selectedDifficulty === "Easy") {
+      return a.point - b.point;
+    }
+
+    return b.point - a.point;
+  });
+
+  const handleVerifyClick = (missionId) => {
+    navigate(`/mission/${missionId}/verify`);
+  };
+
+  return (
+    <PageContainer>
+      <Content>
+        <LevelTitle>{levelInfo.levelName}</LevelTitle>
+
+        <ProgressCard>
+          <PointText>
+            {levelInfo.currentPoint}/{levelInfo.requiredPoint}
+          </PointText>
+
+          <ProgressBar>
+            <ProgressFill $percent={progressPercent} />
+          </ProgressBar>
+
+          <NextLevelText>다음 레벨 : {levelInfo.nextLevelName}</NextLevelText>
+        </ProgressCard>
+
+        <MissionHeader>
+          <MissionHeaderTitle>현재 진행중인 미션</MissionHeaderTitle>
+
+          <MissionDropdown
+            selectedDifficulty={selectedDifficulty}
+            onChangeDifficulty={setSelectedDifficulty}
+          />
+        </MissionHeader>
+
+        <MissionListBox>
+          {isLoading && <StateText>미션을 불러오는 중입니다.</StateText>}
+          {!isLoading && errorMessage && <StateText>{errorMessage}</StateText>}
+          {!isLoading && !errorMessage && sortedMissions.length === 0 && (
+            <StateText>진행 중인 미션이 없습니다.</StateText>
+          )}
+          {!isLoading &&
+            !errorMessage &&
+            sortedMissions.map((mission) => (
+              <MissionCard
+                key={mission.id}
+                mission={mission}
+                onVerifyClick={() => handleVerifyClick(mission.id)}
+              />
+            ))}
+        </MissionListBox>
+      </Content>
+    </PageContainer>
+  );
+}
+
+export default MissionPage;
 
 const PageContainer = styled.div`
   width: 390px;
@@ -45,7 +145,6 @@ const ProgressCard = styled.section`
   width: 350px;
   height: 118px;
   box-sizing: border-box;
-
   border-radius: 15px;
   background: #d0d9ee;
   margin-bottom: 46px;
@@ -109,79 +208,18 @@ const MissionHeaderTitle = styled.h2`
 const MissionListBox = styled.section`
   width: 100%;
   box-sizing: border-box;
-
   padding: 28px 24px 80px;
   border-radius: 15px;
   background: #fff9e8;
-
   display: flex;
   flex-direction: column;
   gap: 32px;
 `;
 
-function MissionPage() {
-  const navigate = useNavigate();
-
-  const [selectedDifficulty, setSelectedDifficulty] = useState("Easy");
-
-  // TODO: API 연동 시 사용자 현재 포인트로 교체
-  const totalPoint = 10;
-
-  const levelInfo = getLevelInfo(totalPoint);
-
-  const progressPercent =
-    (levelInfo.currentPoint / levelInfo.requiredPoint) * 100;
-
-  const sortedMissions = [...missionData].sort((a, b) => {
-    if (selectedDifficulty === "Easy") {
-      return a.point - b.point;
-    }
-
-    return b.point - a.point;
-  });
-
-  const handleVerifyClick = (missionId) => {
-    navigate(`/mission/${missionId}/verify`);
-  };
-
-  return (
-    <PageContainer>
-      <Content>
-        <LevelTitle>{levelInfo.levelName}</LevelTitle>
-
-        <ProgressCard>
-          <PointText>
-            {levelInfo.currentPoint}/{levelInfo.requiredPoint}
-          </PointText>
-
-          <ProgressBar>
-            <ProgressFill $percent={progressPercent} />
-          </ProgressBar>
-
-          <NextLevelText>다음 레벨 : {levelInfo.nextLevelName}</NextLevelText>
-        </ProgressCard>
-
-        <MissionHeader>
-          <MissionHeaderTitle>현재 진행중인 미션</MissionHeaderTitle>
-
-          <MissionDropdown
-            selectedDifficulty={selectedDifficulty}
-            onChangeDifficulty={setSelectedDifficulty}
-          />
-        </MissionHeader>
-
-        <MissionListBox>
-          {sortedMissions.map((mission) => (
-            <MissionCard
-              key={mission.id}
-              mission={mission}
-              onVerifyClick={() => handleVerifyClick(mission.id)}
-            />
-          ))}
-        </MissionListBox>
-      </Content>
-    </PageContainer>
-  );
-}
-
-export default MissionPage;
+const StateText = styled.p`
+  color: #102550;
+  font-family: "Pretendard Variable";
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+`;

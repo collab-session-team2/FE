@@ -1,39 +1,41 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
-import CloseFriendCard from "../../assets/images/closeFriend.svg";
 import CasualFriendCard from "../../assets/images/casualFriend.svg";
+import CloseFriendCard from "../../assets/images/closeFriend.svg";
 import DiaryLook from "./DiaryLook";
-import {
-  useDiary,
-  startOfDay,
-  addDays,
-  isSameDay,
-  weekEn,
-  fmtMain,
-} from "../../store/DiaryContext";
+import { useDiary } from "../../store/useDiary";
+import { addDays, fmtMain, isSameDay, startOfDay, weekEn } from "../../utils/date";
 import { getDiaryRoomDetail } from "../../api/diaryRoom";
 
 export default function DiaryMain() {
   const navigate = useNavigate();
-  const { activeRoomId } = useDiary();
+  const { diaryId } = useParams();
+  const { activeRoomId, openDiary } = useDiary();
+
+  // URL 직접 접근 시에도 현재 방을 동기화 (diaryId = diaryRoomId)
+  useEffect(() => {
+    if (diaryId) openDiary(diaryId);
+  }, [diaryId, openDiary]);
+
+  const roomId = activeRoomId || diaryId;
 
   // 방 상세 조회 상태
   const [detail, setDetail] = useState(null);
-  const [loading, setLoading] = useState(Boolean(activeRoomId));
+  const [loading, setLoading] = useState(Boolean(roomId));
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!activeRoomId) return;
+    if (!roomId) return;
     let mounted = true;
-    getDiaryRoomDetail(activeRoomId)
+    getDiaryRoomDetail(roomId)
       .then((res) => mounted && setDetail(res))
       .catch((e) => mounted && setError(e.message))
       .finally(() => mounted && setLoading(false));
     return () => {
       mounted = false;
     };
-  }, [activeRoomId]);
+  }, [roomId]);
 
   const today = startOfDay(new Date());
   const [weekOffset, setWeekOffset] = useState(0); // 0 = 오늘이 가운데
@@ -114,7 +116,7 @@ export default function DiaryMain() {
               {turn.isMine ? (
                 <>
                   <MyTurnText>오늘 하루, 당신의 일상을 적어보세요</MyTurnText>
-                  <WriteButton onClick={() => navigate("/diaryWrite")}>
+                  <WriteButton onClick={() => navigate(`/diary/${roomId}/write`)}>
                     일기 작성하러 가기
                   </WriteButton>
                 </>
@@ -124,7 +126,7 @@ export default function DiaryMain() {
                     친구가 교환일기를 작성하는 동안 그동안의 일기장을 구경하러
                     가볼까요?
                   </MyTurnText>
-                  <WriteButton onClick={() => navigate("/diaryLook")}>
+                  <WriteButton onClick={() => navigate(`/diary/${roomId}/look`)}>
                     지난 기록 보기
                   </WriteButton>
                 </>

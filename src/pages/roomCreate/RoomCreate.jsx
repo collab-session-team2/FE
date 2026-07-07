@@ -2,14 +2,17 @@ import { useState, useRef } from "react";
 import styled from "styled-components";
 import { FiImage } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { useDiary } from "../../store/useDiary";
 import { createDiaryRoom } from "../../api/diaryRoom";
 import { uploadImage } from "../../api/image";
 
 export default function RoomCreate() {
   const navigate = useNavigate();
+  const { openDiary } = useDiary();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [roomCode, setRoomCode] = useState("");
+  const [createdRoomId, setCreatedRoomId] = useState(null);
 
   const [roomName, setRoomName] = useState("");
   // 선택된 인원수
@@ -41,6 +44,7 @@ export default function RoomCreate() {
         diaryRoomImage: imageUrl,
       });
       setRoomCode(res.inviteCode);
+      setCreatedRoomId(res.diaryRoomId);
       setIsModalOpen(true);
     } catch (e) {
       setError(e.message);
@@ -51,6 +55,11 @@ export default function RoomCreate() {
 
   const handleConfirm = () => {
     setIsModalOpen(false);
+    if (createdRoomId) {
+      openDiary(createdRoomId);
+      navigate(`/diary/${createdRoomId}`);
+      return;
+    }
     navigate("/");
   };
 

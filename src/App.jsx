@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import RootLayout from "./layout/RootLayout";
 import RequireAuth from "./layout/RequireAuth";
@@ -24,7 +24,7 @@ function App() {
     <DiaryProvider>
       <BrowserRouter>
         <Routes>
-          {/* 로그인/회원가입 */}
+          {/* 로그인/회원가입 (public) */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
 
@@ -43,14 +43,24 @@ function App() {
                 element={<MissionVerifyPage />}
               />
 
-              <Route path="/diaryMain" element={<DiaryMain />} />
-              <Route path="/diaryWrite" element={<DiaryWrite />} />
-              <Route path="/diaryDetail" element={<DiaryDetail />} />
-              <Route path="/diaryLook" element={<DiaryLook />} />
+              {/* 일기: diaryId 파라미터 기반 라우팅 */}
+              <Route path="/diary/:diaryId" element={<DiaryMain />} />
+              <Route path="/diary/:diaryId/write" element={<DiaryWrite />} />
+              <Route path="/diary/:diaryId/look" element={<DiaryLook />} />
+              <Route
+                path="/diary/:diaryId/entry/:entryId"
+                element={<DiaryDetail />}
+              />
 
               {/* 추후 상품 등록 페이지 */}
               <Route path="/add" element={<></>} />
             </Route>
+
+            {/* 구 경로 접근 시 홈으로 리다이렉트 */}
+            <Route path="/diaryMain" element={<Navigate to="/" replace />} />
+            <Route path="/diaryWrite" element={<Navigate to="/" replace />} />
+            <Route path="/diaryLook" element={<Navigate to="/" replace />} />
+            <Route path="/diaryDetail" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
       </BrowserRouter>

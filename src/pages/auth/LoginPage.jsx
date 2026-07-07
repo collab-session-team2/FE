@@ -2,9 +2,75 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
+import { login } from "../../api/authApi";
 import loginLogo from "../../assets/images/login_logo.svg";
 import EmailField from "../../components/auth/EmailField";
-import { setLoggedIn } from "../../utils/auth";
+
+function LoginPage() {
+  const navigate = useNavigate();
+
+  const [emailId, setEmailId] = useState("");
+  const [domain, setDomain] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleLogin = async () => {
+    if (!emailId || !domain || !password) {
+      alert("이메일과 비밀번호를 모두 입력해주세요.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await login({ email: `${emailId}@${domain}`, password });
+      navigate("/");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <PageContainer>
+      <Content>
+        <Logo src={loginLogo} alt="LOGIN" />
+
+        <EmailField
+          emailId={emailId}
+          setEmailId={setEmailId}
+          domain={domain}
+          setDomain={setDomain}
+        />
+
+        <InputGroup>
+          <Label>비밀번호 / PASSWORD</Label>
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="비밀번호를 입력해주세요"
+          />
+        </InputGroup>
+
+        <LoginButton
+          type="button"
+          onClick={handleLogin}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "LOGGING IN" : "LOG IN"}
+        </LoginButton>
+
+        <SignupButton type="button" onClick={() => navigate("/signup")}>
+          SIGN UP
+        </SignupButton>
+      </Content>
+    </PageContainer>
+  );
+}
+
+export default LoginPage;
 
 const PageContainer = styled.div`
   width: 390px;
@@ -44,11 +110,9 @@ const Input = styled.input`
   height: 40px;
   padding: 0 12px;
   box-sizing: border-box;
-
   border: 2px solid #3f7aac;
   border-radius: 15px;
   outline: none;
-
   color: #333;
   font-family: "Pretendard Variable";
   font-size: 12px;
@@ -61,18 +125,16 @@ const Input = styled.input`
 const LoginButton = styled.button`
   width: 100%;
   height: 50px;
-
   border: none;
   border-radius: 15px;
   background: #abc6de;
-
   color: #fff;
   font-family: "Pretendard Variable";
   font-size: 20px;
   font-weight: 700;
-
-  cursor: pointer;
+  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
   margin-top: 8px;
+  opacity: ${({ disabled }) => (disabled ? 0.7 : 1)};
   transition: background 0.15s ease, transform 0.1s ease;
 
   &:hover {
@@ -88,16 +150,13 @@ const LoginButton = styled.button`
 const SignupButton = styled.button`
   width: 100%;
   height: 50px;
-
   border: none;
   border-radius: 15px;
   background: #7f9fba;
-
   color: #fff;
   font-family: "Pretendard Variable";
   font-size: 20px;
   font-weight: 700;
-
   cursor: pointer;
   margin-top: 12px;
   transition: background 0.15s ease, transform 0.1s ease;
@@ -111,59 +170,3 @@ const SignupButton = styled.button`
     transform: scale(0.98);
   }
 `;
-
-function LoginPage() {
-  const navigate = useNavigate();
-
-  const [emailId, setEmailId] = useState("");
-  const [domain, setDomain] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleLogin = () => {
-    if (!emailId || !domain || !password) {
-      alert("이메일과 비밀번호를 모두 입력해주세요.");
-      return;
-    }
-
-    // TODO: API 연동 시 로그인 요청으로 교체
-    // await authApi.login({ email: `${emailId}@${domain}`, password });
-
-    setLoggedIn(true);
-    navigate("/");
-  };
-
-  return (
-    <PageContainer>
-      <Content>
-        <Logo src={loginLogo} alt="LOGIN" />
-
-        <EmailField
-          emailId={emailId}
-          setEmailId={setEmailId}
-          domain={domain}
-          setDomain={setDomain}
-        />
-
-        <InputGroup>
-          <Label>비밀번호 / PASSWORD</Label>
-          <Input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="비밀번호를 입력해주세요"
-          />
-        </InputGroup>
-
-        <LoginButton type="button" onClick={handleLogin}>
-          LOG IN
-        </LoginButton>
-
-        <SignupButton type="button" onClick={() => navigate("/signup")}>
-          SIGN UP
-        </SignupButton>
-      </Content>
-    </PageContainer>
-  );
-}
-
-export default LoginPage;
