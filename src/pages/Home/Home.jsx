@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Footer from "../../components/footer/Footer";
 import { FiPlus } from "react-icons/fi";
-import DiaryIcon from "../../assets/icons/diaryIcon.svg";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -140,7 +139,6 @@ const PageTitle = styled.h1`
   color: #fff8e8;
   font-size: 28px;
   font-weight: 800;
-  font-family: "SUITE", sans-serif;
 `;
 
 const AddButton = styled.button`
@@ -168,14 +166,12 @@ const EmptyText = styled.p`
   color: #fff8e8;
   font-size: 18px;
   font-weight: 700;
-  font-family: "SUITE", sans-serif;
 `;
 
 const EmptySubText = styled.p`
   color: #b8a9a0;
   font-size: 14px;
   font-weight: 400;
-  font-family: "SUITE", sans-serif;
 `;
 
 const Grid = styled.div`
@@ -227,7 +223,6 @@ const CardLabel = styled.p`
   color: #fff8e8;
   font-size: 15px;
   font-weight: 700;
-  font-family: "SUITE", sans-serif;
 `;
 
 const ModalOverlay = styled.div`
@@ -251,9 +246,8 @@ const ModalBox = styled.div`
 const ModalTitle = styled.h2`
   font-size: 24px;
   font-weight: 900;
-  color: #4382b2;
+  color:  #102550
   margin-bottom: 8px;
-  font-family: "SUITE", sans-serif;
 `;
 
 const ModalText = styled.p`
@@ -261,7 +255,6 @@ const ModalText = styled.p`
   font-weight: 600;
   color: #555;
   margin-bottom: 24px;
-  font-family: "SUITE", sans-serif;
 `;
 
 const CodeInput = styled.input`
@@ -277,7 +270,6 @@ const CodeInput = styled.input`
   letter-spacing: 3px;
   color: #333;
   margin-bottom: 20px;
-  font-family: "SUITE", sans-serif;
 
   &:focus {
     border-color: #4382b2;
@@ -293,7 +285,6 @@ const ModalButton = styled.button`
   font-size: 16px;
   font-weight: 800;
   cursor: pointer;
-  font-family: "SUITE", sans-serif;
   background: ${({ $primary }) => ($primary ? "#4d7fa8" : "#d0d9ee")};
   color: ${({ $primary }) => ($primary ? "#fff" : "#33507a")};
 `;
@@ -308,5 +299,4 @@ const CancelButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   margin-top: 4px;
-  font-family: "SUITE", sans-serif;
 `;

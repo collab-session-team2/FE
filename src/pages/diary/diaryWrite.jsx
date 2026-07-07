@@ -56,7 +56,7 @@ const Page = styled.div`
   width: 390px;
   min-height: 844px;
   margin: 0 auto;
-  background: #371e16;
+  background: #371E16;
 `;
 
 const Content = styled.div`
@@ -68,14 +68,12 @@ const Logo = styled.h1`
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 24px;
-  font-family: "SUITE", sans-serif;
 `;
 const DiaryTitle = styled.h2`
   color: #fff8e8;
   font-size: 33px;
   font-weight: 700;
   margin-bottom: 8px;
-  font-family: "SUITE", sans-serif;
 `;
 
 const DateText = styled.p`
@@ -83,7 +81,6 @@ const DateText = styled.p`
   font-size: 16px;
   font-weight: 400;
   margin-bottom: 28px;
-  font-family: "SUITE", sans-serif;
 `;
 
 const WriteCard = styled.div`
@@ -139,7 +136,6 @@ const TextArea = styled.textarea`
   outline: none;
   padding: 16px;
   font-size: 16px;
-  font-family: "SUITE", sans-serif;
 `;
 
 const SubmitButton = styled.button`
@@ -153,5 +149,4 @@ const SubmitButton = styled.button`
   font-weight: 400;
   margin-top: 20px;
   cursor: pointer;
-  font-family: "SUITE", sans-serif;
 `;

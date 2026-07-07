@@ -6,4 +6,13 @@
 
 body {
   background-color: #fff;
+  font-family: "SUITE", sans-serif;
+}
+
+/* 폼 요소는 기본적으로 font-family를 상속받지 않으므로 명시적으로 상속 */
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
 }

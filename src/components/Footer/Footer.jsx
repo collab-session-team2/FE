@@ -1,10 +1,15 @@
 import styled from "styled-components";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { GoHome } from "react-icons/go";
 import { BsBookmark } from "react-icons/bs";
 import { FiCheckSquare, FiUser } from "react-icons/fi";
 
 export default function Footer() {
+  const location = useLocation();
+
+  // diary 폴더 내 페이지(diaryMain, diaryWrite 등)에서는 교환일기 탭 활성화
+  const isDiaryActive = location.pathname.startsWith("/diary");
+
   return (
     <FooterBar>
       <MenuItem to="/" end>
@@ -14,7 +19,7 @@ export default function Footer() {
         <span>홈</span>
       </MenuItem>
 
-      <MenuItem to="/diaryMain">
+      <MenuItem to="/diaryMain" className={isDiaryActive ? "active" : ""}>
         <IconWrapper>
           <BsBookmark size={23} />
         </IconWrapper>
@@ -62,7 +67,6 @@ const MenuItem = styled(NavLink)`
 
   span {
     margin-top: 6px;
-    font-family: "SUITE", sans-serif;
     font-size: 13px;
     font-weight: 700;
     line-height: 1;

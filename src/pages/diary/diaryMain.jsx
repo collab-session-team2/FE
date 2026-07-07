@@ -56,7 +56,7 @@ const Page = styled.div`
   width: 390px;
   min-height: 844px;
   margin: 0 auto;
-  background: #371e16;
+  background: #371E16;
 `;
 
 const Content = styled.div`
@@ -68,7 +68,6 @@ const Logo = styled.h1`
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 24px;
-  font-family: "SUITE", sans-serif;
 `;
 
 const DiaryTitle = styled.h2`
@@ -76,7 +75,6 @@ const DiaryTitle = styled.h2`
   font-size: 33px;
   font-weight: 700;
   margin-bottom: 8px;
-  font-family: "SUITE", sans-serif;
 `;
 
 const DateText = styled.p`
@@ -84,7 +82,6 @@ const DateText = styled.p`
   font-size: 16px;
   font-weight: 400;
   margin-bottom: 28px;
-  font-family: "SUITE", sans-serif;
 `;
 
 const DayList = styled.div`
@@ -108,7 +105,6 @@ const DayName = styled.p`
   font-size: 12px;
   font-weight: ${({ $active }) => ($active ? 800 : 400)};
   margin-bottom: 12px;
-  font-family: "SUITE", sans-serif;
 `;
 
 const DateCircle = styled.div`
@@ -148,7 +144,6 @@ const MyTurnTitle = styled.h2`
   font-size: 30px;
   font-weight: 900;
   margin-bottom: 10px;
-  font-family: "SUITE", sans-serif;
 `;
 
 const MyTurnText = styled.p`
@@ -156,7 +151,6 @@ const MyTurnText = styled.p`
   font-size: 15px;
   font-weight: 500;
   margin-bottom: 50px;
-  font-family: "SUITE", sans-serif;
 `;
 const WriteButton = styled.button`
   width: 294px;
@@ -168,5 +162,4 @@ const WriteButton = styled.button`
   font-size: 14px;
   font-weight: 400;
   cursor: pointer;
-  font-family: "SUITE", sans-serif;
 `;
