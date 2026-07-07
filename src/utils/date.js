@@ -24,3 +24,6 @@ export const fmtMain = (d) =>
   `${pad(d.getMonth() + 1)}.${pad(d.getDate())}.${d.getFullYear()}`;
 export const fmtEntry = (d) =>
   `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}.${weekKo(d)}`;
+// 서버 date 쿼리용 (YYYY-MM-DD)
+export const fmtISO = (d) =>
+  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;

@@ -134,7 +134,7 @@ export default function DiaryMain() {
             </MyTurnBox>
           </>
         ) : (
-          selectedIsPast && <DiaryLook embedded />
+          selectedIsPast && <DiaryLook embedded date={centerDate} />
         )}
       </Content>
     </Page>

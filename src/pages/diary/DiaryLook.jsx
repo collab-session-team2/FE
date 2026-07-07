@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useDiary } from "../../store/useDiary";
-import { fmtEntry, fmtMain } from "../../utils/date";
+import { fmtEntry, fmtISO, fmtMain } from "../../utils/date";
 import { getDiaryRoomDetail } from "../../api/diaryRoom";
 import { getDiaries } from "../../api/diary";
 
@@ -37,7 +37,8 @@ const ImageIcon = () => (
   </svg>
 );
 
-export default function DiaryLook({ embedded = false }) {
+// date(Date | null): 있으면 해당 날짜 기록만, 없으면 전체 기록을 조회한다.
+export default function DiaryLook({ embedded = false, date = null }) {
   const navigate = useNavigate();
   const { activeRoomId, openEntry } = useDiary();
 
@@ -46,18 +47,25 @@ export default function DiaryLook({ embedded = false }) {
   const [loading, setLoading] = useState(Boolean(activeRoomId));
   const [error, setError] = useState(null);
 
-  // 일기 목록 조회
+  // 날짜가 바뀌어도 다시 조회하도록 문자열(YYYY-MM-DD)로 고정한다.
+  const dateKey = date ? fmtISO(date) : "";
+
+  // 일기 목록 조회 (date 있으면 날짜별, 없으면 전체)
   useEffect(() => {
     if (!activeRoomId) return;
     let mounted = true;
-    getDiaries(activeRoomId)
-      .then((res) => mounted && setEntries(res || []))
+    getDiaries(activeRoomId, dateKey || undefined)
+      .then((res) => {
+        if (!mounted) return;
+        setEntries(res || []);
+        setError(null);
+      })
       .catch((e) => mounted && setError(e.message))
       .finally(() => mounted && setLoading(false));
     return () => {
       mounted = false;
     };
-  }, [activeRoomId]);
+  }, [activeRoomId, dateKey]);
 
   // 헤더용 방 이름 (독립 페이지에서만 필요)
   useEffect(() => {
@@ -100,7 +108,13 @@ export default function DiaryLook({ embedded = false }) {
   );
 
   // 과거 날짜에서 DiaryMain 안에 리스트만 렌더링
-  if (embedded) return list;
+  if (embedded) {
+    if (loading) return <EmptyText>불러오는 중...</EmptyText>;
+    if (error) return <EmptyText>{error}</EmptyText>;
+    if (entries.length === 0)
+      return <EmptyText>이 날의 기록이 없어요.</EmptyText>;
+    return list;
+  }
 
   return (
     <Page>
@@ -122,6 +136,13 @@ const Page = styled.div`
   margin: 0 auto;
   background: #371e16;
   padding: 24px 20px 100px;
+`;
+
+const EmptyText = styled.p`
+  color: #cdbfae;
+  font-size: 15px;
+  text-align: center;
+  padding: 24px 0;
 `;
 
 const Header = styled.header`

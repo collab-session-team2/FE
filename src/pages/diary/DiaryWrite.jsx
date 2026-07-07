@@ -60,9 +60,9 @@ export default function DiaryWrite() {
         diaryImage = uploaded.imageUrl;
       }
       await createDiary(activeRoomId, { title, content, diaryImage });
-      // 작성 완료 → 지난 기록 보기로 이동. DiaryLook 이 mount 시 목록을 새로
-      // 조회하므로 방금 작성한 일기가 즉시 노출된다.
-      navigate(`/diary/${activeRoomId}/look`);
+      // 작성 완료 → 홈으로 이동. 이후 "지난 기록 보기"나 날짜 이동 시
+      // 목록을 새로 조회하므로 방금 작성한 일기가 노출된다.
+      navigate("/");
     } catch (e) {
       setError(e.message);
       setSubmitting(false);
