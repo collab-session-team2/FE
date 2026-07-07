@@ -56,7 +56,7 @@ const Page = styled.div`
   width: 390px;
   min-height: 844px;
   margin: 0 auto;
-  background: #371E16;
+  background: #371e16;
 `;
 
 const Content = styled.div`
@@ -134,7 +134,7 @@ const CardImage = styled.img`
 const MyTurnBox = styled.div`
   width: 350px;
   height: 211px;
-  background: #d0d9ee;
+  background: #fff9e8;
   border-radius: 20px;
   padding: 34px 28px;
 `;
