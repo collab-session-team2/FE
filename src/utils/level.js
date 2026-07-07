@@ -15,23 +15,23 @@ export function getLevelInfo(totalPoint) {
       levelName: "CLOSE FRIEND",
       currentPoint: totalPoint - 20,
       requiredPoint: 30,
-      nextLevelName: "BEST FRIEND",
+      nextLevelName: "BEST FRIENDS FOREVER",
     };
   }
 
   if (totalPoint < 100) {
     return {
       level: 3,
-      levelName: "BEST FRIEND",
+      levelName: "BEST FRIENDS FOREVER",
       currentPoint: totalPoint - 50,
       requiredPoint: 50,
-      nextLevelName: "SOULMATE",
+      nextLevelName: "RIDE OR DIE",
     };
   }
 
   return {
     level: 4,
-    levelName: "SOULMATE",
+    levelName: "RIDE OR DIE",
     currentPoint: 100,
     requiredPoint: 100,
     nextLevelName: "MAX LEVEL",
