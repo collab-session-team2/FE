@@ -1,81 +1,96 @@
 import { useState } from "react";
 import styled from "styled-components";
 
+import downIcon from "../../assets/icons/down_icon.svg";
+
 const Wrapper = styled.div`
   position: relative;
 `;
 
 const SelectedButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-width: 64px;
+  height: 26px;
+  padding: 2px 10px 4px 12px;
+
   border: none;
-  background: none;
-  color: #fff;
-  font-size: 20px;
-  font-weight: 600;
+  border-radius: 5px;
+  background: #fff9e8;
+
+  color: #000;
+  font-family: "Pretendard Variable";
+  font-size: 15px;
+  font-weight: 700;
+
   cursor: pointer;
 `;
 
-const Arrow = styled.span`
-  margin-left: 8px;
-  font-size: 24px;
+const ArrowIcon = styled.img`
+  width: 12px;
+  height: 7px;
+
+  transform: ${({ $isOpen }) => ($isOpen ? "rotate(180deg)" : "rotate(0deg)")};
+  transition: transform 0.2s ease;
 `;
 
 const DropdownBox = styled.div`
   position: absolute;
-  top: 42px;
+  top: 34px;
   right: 0;
-  width: 150px;
-  padding: 12px;
-  border-radius: 14px;
-  background-color: #fff;
-  z-index: 10;
+
+  width: 104px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #fff;
+  z-index: 20;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 `;
 
 const OptionButton = styled.button`
   width: 100%;
-  height: 42px;
-  border: ${({ $active }) => ($active ? "none" : "1px solid #d1c9c9")};
-  border-radius: 8px;
-  background-color: ${({ $active }) => ($active ? "#d2cbcb" : "#fff")};
-  font-size: 17px;
-  font-weight: 500;
-  cursor: pointer;
+  height: 34px;
 
-  & + & {
-    margin-top: 10px;
-  }
-`;
+  border-radius: 5px;
+  border: ${({ $active }) => ($active ? "none" : "1.5px solid #371e16")};
 
-const HideButton = styled.button`
-  width: 100%;
-  margin-top: 22px;
-  border: none;
-  background: none;
-  font-size: 16px;
-  font-weight: 600;
+  background: ${({ $active }) => ($active ? "#371e16" : "#fff9e8")};
+  color: ${({ $active }) => ($active ? "#fff9e8" : "#371e16")};
+
+  font-family: "Pretendard Variable";
+  font-size: 15px;
+  font-weight: 700;
+
   cursor: pointer;
 `;
-
-const UpArrow = styled.span`
-  margin-left: 4px;
-  font-size: 20px;
-`;
-
 
 function MissionDropdown({ selectedDifficulty, onChangeDifficulty }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const options = ["Easy", "Normal"];
+  const options = ["Easy", "Hard"];
 
-  const handleSelect = (option) => {
+  const handleToggleDropdown = () => {
+    setIsOpen((prev) => !prev);
+  };
+
+  const handleSelectOption = (option) => {
     onChangeDifficulty(option);
     setIsOpen(false);
   };
 
   return (
     <Wrapper>
-      <SelectedButton type="button" onClick={() => setIsOpen(true)}>
+      <SelectedButton type="button" onClick={handleToggleDropdown}>
         {selectedDifficulty}
-        <Arrow>⌄</Arrow>
+        <ArrowIcon src={downIcon} alt="드롭다운 열기" $isOpen={isOpen} />
       </SelectedButton>
 
       {isOpen && (
@@ -84,16 +99,12 @@ function MissionDropdown({ selectedDifficulty, onChangeDifficulty }) {
             <OptionButton
               key={option}
               type="button"
-              onClick={() => handleSelect(option)}
+              onClick={() => handleSelectOption(option)}
               $active={selectedDifficulty === option}
             >
               {option}
             </OptionButton>
           ))}
-
-          <HideButton type="button" onClick={() => setIsOpen(false)}>
-            숨기기 <UpArrow>⌃</UpArrow>
-          </HideButton>
         </DropdownBox>
       )}
     </Wrapper>

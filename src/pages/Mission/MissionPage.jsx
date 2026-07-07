@@ -10,16 +10,30 @@ import MissionDropdown from "../../components/mission/MissionDropdown";
 const PageContainer = styled.div`
   width: 390px;
   height: 799px;
-  background: #3f7aac;
+  margin: 0 auto;
+  background: #371e16;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 `;
 
 const Content = styled.main`
-  padding: 37px 20px 60px;
+  width: 100%;
+  min-height: 100%;
+  padding: 37px 20px 80px;
+  box-sizing: border-box;
 `;
 
 const LevelTitle = styled.p`
-  color: #fff;
-  font-family: "Pretendard Variable";
+  color: #fff9e8;
+  font-family: SUITE;
   font-size: 28px;
   font-style: normal;
   font-weight: 700;
@@ -28,59 +42,59 @@ const LevelTitle = styled.p`
 `;
 
 const ProgressCard = styled.section`
-  width: 364px;
-  height: 125px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.3);
-  margin-bottom: 42px;
-  padding: 8px 7px 18px;
+  width: 350px;
+  height: 118px;
+  box-sizing: border-box;
+
+  border-radius: 15px;
+  background: #d0d9ee;
+  margin-bottom: 46px;
+  padding: 12px 15px 19px;
 `;
 
 const PointText = styled.p`
-  display: block;
-  color: #fff;
-  font-family: "Pretendard Variable";
-  font-size: 16px;
+  color: #102550;
+  font-family: SUITE;
+  font-size: 15px;
   font-style: normal;
-  font-weight: 400;
+  font-weight: 700;
   line-height: normal;
-  margin-left: 7px;
+  border-radius: 100px;
   margin-bottom: 7px;
 `;
 
 const ProgressBar = styled.div`
-  width: 235px;
-  height: 38px;
+  width: 318px;
+  height: 22px;
   border-radius: 100px;
   border: 1px solid #fff;
   background: #fff9e8;
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 `;
 
 const ProgressFill = styled.div`
   width: ${({ $percent }) => `${$percent}%`};
-  height: 38px;
+  height: 100%;
   border-radius: 100px;
   border: 1px solid #fff;
-  background: #244460;
+  background: #102550;
 `;
 
 const NextLevelText = styled.p`
-  color: #fff;
-  font-family: "Pretendard Variable";
-  font-size: 16px;
+  color: #102550;
+  font-family: SUITE;
+  font-size: 15px;
   font-style: normal;
-  font-weight: 400;
+  font-weight: 700;
   line-height: normal;
-  margin-left: 7px;
 `;
 
 const MissionHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
+  margin-bottom: 14px;
 `;
 
 const MissionHeaderTitle = styled.h2`
@@ -93,20 +107,21 @@ const MissionHeaderTitle = styled.h2`
 `;
 
 const MissionListBox = styled.section`
-  width: 350px;
-  padding: 28px 24px;
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 28px 24px 80px;
   border-radius: 15px;
   background: #fff9e8;
 
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 32px;
 `;
 
 function MissionPage() {
   const navigate = useNavigate();
 
-  // Easy / Hard는 이제 난이도 필터가 아니라 정렬 기준으로 사용
   const [selectedDifficulty, setSelectedDifficulty] = useState("Easy");
 
   // TODO: API 연동 시 사용자 현재 포인트로 교체
