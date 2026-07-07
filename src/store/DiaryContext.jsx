@@ -208,6 +208,24 @@ export function DiaryProvider({ children }) {
     const member = diary.members.find((m) => m.id === currentId);
     const name = member?.name || "";
     return { isMine, name, label: isMine ? "MY TURN" : `${name} Turn` };
+const DiaryContext = createContext(null);
+
+// 화면 간 이동에 필요한 "현재 방/일기" 식별자만 보관한다.
+// 실제 데이터(방 목록/상세/일기)는 각 화면에서 API로 조회한다.
+export function DiaryProvider({ children }) {
+  const [activeRoomId, setActiveRoomId] = useState(null); // diaryRoomId
+  const [activeDiaryId, setActiveDiaryId] = useState(null); // diaryId
+
+  // 방 열기 (Home 카드 클릭 등)
+  const openDiary = (diaryRoomId) => {
+    setActiveRoomId(diaryRoomId);
+    setActiveDiaryId(null);
+  };
+
+  // 일기 상세 열기
+  const openEntry = (diaryRoomId, diaryId) => {
+    setActiveRoomId(diaryRoomId);
+    setActiveDiaryId(diaryId);
   };
 
   return (
@@ -231,6 +249,10 @@ export function DiaryProvider({ children }) {
         addComment,
         completeMission,
         getTurn,
+        activeRoomId,
+        activeDiaryId,
+        openDiary,
+        openEntry,
       }}
     >
       {children}

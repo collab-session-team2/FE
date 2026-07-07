@@ -1,9 +1,13 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { useDiary } from "../../store/useDiary";
 import { fmtEntry, fmtMain } from "../../utils/date";
+import { useDiary, fmtMain, fmtEntry } from "../../store/DiaryContext";
+import { getDiaryRoomDetail } from "../../api/diaryRoom";
+import { getDiaries } from "../../api/diary";
 
 const C = {
   bg: "#3C2A21",
@@ -50,25 +54,60 @@ export default function DiaryLook({ embedded = false }) {
   const goDetail = (entryId) => {
     openEntry(diary.id, entryId);
     navigate(`/diary/${diary.id}/entry/${entryId}`);
+  const { activeRoomId, openEntry } = useDiary();
+
+  const [entries, setEntries] = useState([]);
+  const [roomName, setRoomName] = useState("");
+  const [loading, setLoading] = useState(Boolean(activeRoomId));
+  const [error, setError] = useState(null);
+
+  // 일기 목록 조회
+  useEffect(() => {
+    if (!activeRoomId) return;
+    let mounted = true;
+    getDiaries(activeRoomId)
+      .then((res) => mounted && setEntries(res || []))
+      .catch((e) => mounted && setError(e.message))
+      .finally(() => mounted && setLoading(false));
+    return () => {
+      mounted = false;
+    };
+  }, [activeRoomId]);
+
+  // 헤더용 방 이름 (독립 페이지에서만 필요)
+  useEffect(() => {
+    if (embedded || !activeRoomId) return;
+    let mounted = true;
+    getDiaryRoomDetail(activeRoomId)
+      .then((res) => mounted && setRoomName(res?.diaryRoomName || ""))
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, [embedded, activeRoomId]);
+
+  const goDetail = (diaryId) => {
+    openEntry(activeRoomId, diaryId);
+    navigate("/diaryDetail");
   };
 
   const list = (
     <List>
       {entries.map((d) => (
-        <Card key={d.id} onClick={() => goDetail(d.id)}>
+        <Card key={d.diaryId} onClick={() => goDetail(d.diaryId)}>
           <Thumb>
-            {d.photo ? <ThumbImg src={d.photo} alt="" /> : <ImageIcon />}
+            {d.diaryImage ? <ThumbImg src={d.diaryImage} alt="" /> : <ImageIcon />}
           </Thumb>
           <Info>
             <AuthorRow>
               <Avatar>
                 <UserIcon />
               </Avatar>
-              <AuthorName>{d.authorName}</AuthorName>
+              <AuthorName>{d.userName}</AuthorName>
             </AuthorRow>
             <Title>{d.title}</Title>
-            <DateText>{fmtEntry(new Date(d.date))}</DateText>
-            <Preview>{d.preview}</Preview>
+            <DateText>{fmtEntry(new Date(d.targetDate))}</DateText>
+            <Preview>{d.content}</Preview>
           </Info>
         </Card>
       ))}
@@ -83,8 +122,11 @@ export default function DiaryLook({ embedded = false }) {
       <Header>
         <Brand>SLAM BOOK</Brand>
         <RoomTitle>{diary?.name}</RoomTitle>
+        <RoomTitle>{roomName}</RoomTitle>
         <RoomDate>{fmtMain(new Date())}</RoomDate>
       </Header>
+      {loading && <RoomDate>불러오는 중...</RoomDate>}
+      {error && <RoomDate>{error}</RoomDate>}
       {list}
     </Page>
   );

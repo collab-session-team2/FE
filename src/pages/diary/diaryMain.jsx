@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import BestFriendCard from "../../assets/images/BestFriend.svg";
 import CloseFriendCard from "../../assets/images/closeFriend.svg";
@@ -33,6 +34,29 @@ export default function DiaryMain() {
   useEffect(() => {
     if (diaryId) openDiary(diaryId);
   }, [diaryId, openDiary]);
+} from "../../store/DiaryContext";
+import { getDiaryRoomDetail } from "../../api/diaryRoom";
+
+export default function DiaryMain() {
+  const navigate = useNavigate();
+  const { activeRoomId } = useDiary();
+
+  // 방 상세 조회 상태
+  const [detail, setDetail] = useState(null);
+  const [loading, setLoading] = useState(Boolean(activeRoomId));
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!activeRoomId) return;
+    let mounted = true;
+    getDiaryRoomDetail(activeRoomId)
+      .then((res) => mounted && setDetail(res))
+      .catch((e) => mounted && setError(e.message))
+      .finally(() => mounted && setLoading(false));
+    return () => {
+      mounted = false;
+    };
+  }, [activeRoomId]);
 
   const today = startOfDay(new Date());
   const [weekOffset, setWeekOffset] = useState(0); // 0 = 오늘이 가운데
@@ -54,6 +78,16 @@ export default function DiaryMain() {
   const order = diary?.order || 1;
   const levelInfo = getLevelInfo(activeTotalPoint);
   const cardSvg = FRIEND_CARD_BY_LEVEL[levelInfo.level] || CasualFriendCard;
+  // 내 차례 여부(myTurn) / 현재 차례 사용자명(currentTurnUserName)
+  const isMyTurn = !!detail?.myTurn;
+  const turn = {
+    isMine: isMyTurn,
+    name: detail?.currentTurnUserName || "",
+    label: isMyTurn ? "MY TURN" : `${detail?.currentTurnUserName || ""} Turn`,
+  };
+  // TODO: 확인 필요 - NO.00X(방 생성 순번) 필드가 상세 응답에 없음. 우선 1 고정.
+  const order = 1;
+  const cardSvg = order === 1 ? CasualFriendCard : CloseFriendCard;
 
   return (
     <Page>
@@ -61,7 +95,11 @@ export default function DiaryMain() {
         <Logo>SLAM BOOK</Logo>
 
         <DiaryTitle>{diary?.name}</DiaryTitle>
+        <DiaryTitle>{detail?.diaryRoomName}</DiaryTitle>
         <DateText>{fmtMain(centerDate)}</DateText>
+
+        {loading && <DateText>불러오는 중...</DateText>}
+        {error && <DateText>{error}</DateText>}
 
         <DayList>
           <Arrow onClick={() => setWeekOffset((o) => o - 1)}>‹</Arrow>
@@ -93,6 +131,8 @@ export default function DiaryMain() {
               <CardImage src={cardSvg} alt="friend card" />
               {diary?.photo && (
                 <CardPhoto src={diary.photo} alt="대표 사진" />
+              {detail?.diaryRoomImage && (
+                <CardPhoto src={detail.diaryRoomImage} alt="대표 사진" />
               )}
               <CardNo>
                 NO.<CardNoNum>{String(order).padStart(3, "0")}</CardNoNum>

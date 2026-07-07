@@ -7,6 +7,11 @@ import { useDiary } from "../../store/useDiary";
 export default function RoomCreate() {
   const navigate = useNavigate();
   const { createRoom, openDiary } = useDiary();
+import { createDiaryRoom } from "../../api/diaryRoom";
+import { uploadImage } from "../../api/image";
+
+export default function RoomCreate() {
+  const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [roomCode, setRoomCode] = useState("");
@@ -16,9 +21,13 @@ export default function RoomCreate() {
   // 선택된 인원수
   const [selectedPeople, setSelectedPeople] = useState(null);
 
-  // 이미지 미리보기 & 파일 input 참조
+  // 이미지 미리보기 & 실제 업로드용 파일 & input 참조
   const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   // 모든 정보 입력 여부 (이름 + 인원수 + 대표 사진)
   const isFormComplete =
@@ -35,6 +44,26 @@ export default function RoomCreate() {
     setRoomCode(code);
     setCreatedRoomId(id);
     setIsModalOpen(true);
+  const handleCreateRoom = async () => {
+    if (!isFormComplete || submitting) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      // 1) 이미지 먼저 업로드 -> imageUrl 획득
+      const { imageUrl } = await uploadImage(imageFile, "DIARY_ROOM");
+      // 2) 방 생성 -> 초대코드(inviteCode) 발급
+      const res = await createDiaryRoom({
+        diaryRoomName: roomName.trim(),
+        maxMember: selectedPeople || 4,
+        diaryRoomImage: imageUrl,
+      });
+      setRoomCode(res.inviteCode);
+      setIsModalOpen(true);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleConfirm = () => {
@@ -52,10 +81,11 @@ export default function RoomCreate() {
     fileInputRef.current?.click();
   };
 
-  // 파일 선택 시 미리보기 생성
+  // 파일 선택 시 미리보기 생성 + 업로드용 파일 보관
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
     }
   };
@@ -114,11 +144,12 @@ export default function RoomCreate() {
 
         <CreateButton
           onClick={handleCreateRoom}
-          disabled={!isFormComplete}
-          $disabled={!isFormComplete}
+          disabled={!isFormComplete || submitting}
+          $disabled={!isFormComplete || submitting}
         >
-          일기장 생성하기
+          {submitting ? "생성 중..." : "일기장 생성하기"}
         </CreateButton>
+        {error && <ErrorText>{error}</ErrorText>}
       </FormWrapper>
 
       {isModalOpen && (
@@ -258,6 +289,13 @@ const CreateButton = styled.button`
   opacity: ${({ $disabled }) => ($disabled ? 0.6 : 1)};
   margin-top: -10px;
   transition: background 0.15s ease, opacity 0.15s ease;
+`;
+
+const ErrorText = styled.p`
+  color: #ffb4a2;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 14px;
 `;
 
 const ModalOverlay = styled.div`
