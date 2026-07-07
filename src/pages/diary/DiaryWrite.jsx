@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { FiImage } from "react-icons/fi";
-import Footer from "../../components/footer/Footer";
 import { useDiary, fmtMain } from "../../store/DiaryContext";
 import { getDiaryRoomDetail } from "../../api/diaryRoom";
 import { createDiary } from "../../api/diary";
@@ -110,8 +109,6 @@ export default function DiaryWrite() {
           {error && <ErrorText>{error}</ErrorText>}
         </WriteCard>
       </Content>
-
-      <Footer />
     </Page>
   );
 }

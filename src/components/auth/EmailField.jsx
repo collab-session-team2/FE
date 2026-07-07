@@ -55,15 +55,20 @@ const DomainWrapper = styled.div`
 const DomainButton = styled.button`
   width: 100%;
   height: 40px;
+  padding: 0 6px;
 
   border: 2px solid #3f7aac;
   border-radius: 15px;
   background: #fff;
 
-  color: #173a5a;
+  color: ${({ $selected }) => ($selected ? "#173a5a" : "#b5b5b5")};
   font-family: "Pretendard Variable";
-  font-size: 14px;
+  font-size: ${({ $selected }) => ($selected ? "11px" : "14px")};
   font-weight: 700;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 
   cursor: pointer;
 `;
@@ -157,9 +162,10 @@ function EmailField({ emailId, setEmailId, domain, setDomain }) {
           ) : (
             <DomainButton
               type="button"
+              $selected={!!domain}
               onClick={() => setIsOpen((prev) => !prev)}
             >
-              v
+              {domain || "선택 ▾"}
             </DomainButton>
           )}
 

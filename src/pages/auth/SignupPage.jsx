@@ -80,6 +80,16 @@ const SignupButton = styled.button`
 
   cursor: pointer;
   margin-top: 4px;
+  transition: background 0.15s ease, transform 0.1s ease;
+
+  &:hover {
+    background: #9bb8d4;
+  }
+
+  &:active {
+    background: #89a9c8;
+    transform: scale(0.98);
+  }
 `;
 
 function SignupPage() {

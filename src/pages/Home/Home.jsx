@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import Footer from "../../components/footer/Footer";
 import { FiPlus } from "react-icons/fi";
 import { useDiary } from "../../store/DiaryContext";
 import { getDiaryRooms, joinDiaryRoom } from "../../api/diaryRoom";
+import { isLoggedIn } from "../../utils/auth";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -12,31 +12,30 @@ export default function Home() {
 
   // 방 목록 조회 상태
   const [diaries, setDiaries] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // 로그인 상태면 목록을 불러오므로 로딩으로 시작, 게스트면 바로 빈 화면
+  const [loading, setLoading] = useState(isLoggedIn());
   const [error, setError] = useState(null);
 
   // 모달 단계: null | "choice" | "code"
   const [modalStep, setModalStep] = useState(null);
   const [code, setCode] = useState("");
 
-  // 방 목록 조회
-  const fetchRooms = () => {
-    setLoading(true);
-    return getDiaryRooms()
+  // 방 목록 조회 (단일 소스)
+  const loadRooms = () =>
+    getDiaryRooms()
       .then((res) => setDiaries(res || []))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
+
+  // 리페치용: 로딩 표시 후 재조회
+  const fetchRooms = () => {
+    setLoading(true);
+    return loadRooms();
   };
 
   useEffect(() => {
-    let mounted = true;
-    getDiaryRooms()
-      .then((res) => mounted && setDiaries(res || []))
-      .catch((e) => mounted && setError(e.message))
-      .finally(() => mounted && setLoading(false));
-    return () => {
-      mounted = false;
-    };
+    // 로그인 안 된 게스트는 보호된 방 목록 API(403)를 호출하지 않고 빈 화면을 보여준다.
+    if (isLoggedIn()) loadRooms();
   }, []);
 
   const openChoiceModal = () => setModalStep("choice");
@@ -110,7 +109,6 @@ export default function Home() {
           </Grid>
         )}
       </Content>
-
       {/* 선택 모달 */}
       {modalStep === "choice" && (
         <ModalOverlay onClick={closeModal}>
@@ -153,8 +151,6 @@ export default function Home() {
           </ModalBox>
         </ModalOverlay>
       )}
-
-      <Footer />
     </Page>
   );
 }
@@ -291,7 +287,7 @@ const ModalBox = styled.div`
 const ModalTitle = styled.h2`
   font-size: 24px;
   font-weight: 900;
-  color:  #102550
+  color: #102550;
   margin-bottom: 8px;
 `;
 

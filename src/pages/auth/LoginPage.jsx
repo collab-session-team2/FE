@@ -4,6 +4,7 @@ import styled from "styled-components";
 
 import loginLogo from "../../assets/images/login_logo.svg";
 import EmailField from "../../components/auth/EmailField";
+import { setLoggedIn } from "../../utils/auth";
 
 const PageContainer = styled.div`
   width: 390px;
@@ -72,6 +73,16 @@ const LoginButton = styled.button`
 
   cursor: pointer;
   margin-top: 8px;
+  transition: background 0.15s ease, transform 0.1s ease;
+
+  &:hover {
+    background: #9bb8d4;
+  }
+
+  &:active {
+    background: #89a9c8;
+    transform: scale(0.98);
+  }
 `;
 
 const SignupButton = styled.button`
@@ -89,6 +100,16 @@ const SignupButton = styled.button`
 
   cursor: pointer;
   margin-top: 12px;
+  transition: background 0.15s ease, transform 0.1s ease;
+
+  &:hover {
+    background: #6e8ea9;
+  }
+
+  &:active {
+    background: #5d7d98;
+    transform: scale(0.98);
+  }
 `;
 
 function LoginPage() {
@@ -107,7 +128,8 @@ function LoginPage() {
     // TODO: API 연동 시 로그인 요청으로 교체
     // await authApi.login({ email: `${emailId}@${domain}`, password });
 
-    navigate("/home");
+    setLoggedIn(true);
+    navigate("/");
   };
 
   return (
