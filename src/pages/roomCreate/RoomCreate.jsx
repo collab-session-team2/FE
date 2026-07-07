@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import styled from "styled-components";
 import { FiImage } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,13 @@ export default function RoomCreate() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [roomCode, setRoomCode] = useState("");
+
+  // 선택된 인원수
+  const [selectedPeople, setSelectedPeople] = useState(null);
+
+  // 이미지 미리보기 & 파일 input 참조
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef = useRef(null);
 
   const handleCreateRoom = () => {
     const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -19,6 +26,21 @@ export default function RoomCreate() {
     setIsModalOpen(false);
     navigate("/");
   };
+
+  // 이미지 박스 클릭 -> 숨겨진 file input 열기
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // 파일 선택 시 미리보기 생성
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const peopleOptions = [2, 3, 4, 5];
 
   return (
     <Container>
@@ -33,20 +55,38 @@ export default function RoomCreate() {
         <Section>
           <Label>인원수 선택</Label>
           <PeopleWrapper>
-            <PeopleButton>2명</PeopleButton>
-            <PeopleButton>3명</PeopleButton>
-            <PeopleButton>4명</PeopleButton>
-            <PeopleButton>5명</PeopleButton>
+            {peopleOptions.map((num) => (
+              <PeopleButton
+                key={num}
+                $active={selectedPeople === num}
+                onClick={() => setSelectedPeople(num)}
+              >
+                {num}명
+              </PeopleButton>
+            ))}
           </PeopleWrapper>
         </Section>
 
         <Section>
           <Label>일기장 대표 사진</Label>
-          <ImageBox>
-            <FiImage />
-            <ImageMainText>사진 추가하기</ImageMainText>
-            <ImageSubText>미션 인증 사진을 올려주세요</ImageSubText>
+          <ImageBox onClick={handleImageClick} $hasImage={!!imagePreview}>
+            {imagePreview ? (
+              <PreviewImage src={imagePreview} alt="대표 사진 미리보기" />
+            ) : (
+              <>
+                <FiImage />
+                <ImageMainText>사진 추가하기</ImageMainText>
+                <ImageSubText>미션 인증 사진을 올려주세요</ImageSubText>
+              </>
+            )}
           </ImageBox>
+
+          <HiddenInput
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handleImageChange}
+          />
         </Section>
 
         <CreateButton onClick={handleCreateRoom}>일기장 생성하기</CreateButton>
@@ -126,11 +166,13 @@ const PeopleButton = styled.button`
   height: 44px;
   border-radius: 12px;
   border: 1.5px solid #fff;
-  background: transparent;
+  background: ${(props) =>
+    props.$active ? "rgba(255, 255, 255, 0.35)" : "transparent"};
   color: white;
   font-size: 20px;
   font-weight: 500;
   cursor: pointer;
+  transition: background 0.15s ease;
 `;
 
 const ImageBox = styled.div`
@@ -143,11 +185,24 @@ const ImageBox = styled.div`
   justify-content: center;
   align-items: center;
   color: #777;
+  cursor: pointer;
+  overflow: hidden;
+  padding: ${(props) => (props.$hasImage ? "0" : "0")};
 
   svg {
     font-size: 48px;
     margin-bottom: 10px;
   }
+`;
+
+const PreviewImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const HiddenInput = styled.input`
+  display: none;
 `;
 
 const ImageMainText = styled.p`
