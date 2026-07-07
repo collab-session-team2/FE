@@ -12,7 +12,6 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<RootLayout />}>
-          <Route path="/" element={<Main />} />
           <Route path="/add" element={<></>} />{" "}
           <Route path="/mission" element={<MissionPage />} />
           {/* 추후 element에 상품 등록 페이지 들어가야함 */}
