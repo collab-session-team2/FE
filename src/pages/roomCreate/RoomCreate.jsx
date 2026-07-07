@@ -76,7 +76,7 @@ export default function RoomCreate() {
               <>
                 <FiImage />
                 <ImageMainText>사진 추가하기</ImageMainText>
-                <ImageSubText>미션 인증 사진을 올려주세요</ImageSubText>
+                <ImageSubText>방 대표 사진을 골라주세요</ImageSubText>
               </>
             )}
           </ImageBox>
@@ -153,6 +153,7 @@ const Input = styled.input`
   outline: none;
   color: white;
   font-size: 18px;
+  font-family: "SUITE", sans-serif;
   padding: 0 16px;
 `;
 
@@ -170,6 +171,7 @@ const PeopleButton = styled.button`
     props.$active ? "rgba(255, 255, 255, 0.35)" : "transparent"};
   color: white;
   font-size: 20px;
+  font-family: "SUITE", sans-serif;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.15s ease;
@@ -209,11 +211,13 @@ const ImageMainText = styled.p`
   font-size: 15px;
   font-weight: 700;
   margin-bottom: 6px;
+  font-family: "SUITE", sans-serif;
 `;
 
 const ImageSubText = styled.p`
   font-size: 13px;
   font-weight: 500;
+  font-family: "SUITE", sans-serif;
 `;
 
 const CreateButton = styled.button`
@@ -225,6 +229,7 @@ const CreateButton = styled.button`
   color: white;
   font-size: 24px;
   font-weight: 700;
+  font-family: "SUITE", sans-serif;
   cursor: pointer;
   margin-top: -10px;
 `;
@@ -250,6 +255,7 @@ const ModalBox = styled.div`
 const ModalTitle = styled.h2`
   font-size: 28px;
   font-weight: 900;
+  font-family: "SUITE", sans-serif;
   color: #4382b2;
   margin-bottom: 12px;
 `;
@@ -257,6 +263,7 @@ const ModalTitle = styled.h2`
 const ModalText = styled.p`
   font-size: 16px;
   font-weight: 700;
+  font-family: "SUITE", sans-serif;
   color: #333;
   margin-bottom: 24px;
 `;
@@ -271,6 +278,7 @@ const CodeBox = styled.div`
 const CodeLabel = styled.p`
   font-size: 14px;
   font-weight: 700;
+  font-family: "SUITE", sans-serif;
   color: #777;
   margin-bottom: 8px;
 `;
@@ -278,6 +286,7 @@ const CodeLabel = styled.p`
 const RoomCode = styled.p`
   font-size: 30px;
   font-weight: 900;
+  font-family: "SUITE", sans-serif;
   letter-spacing: 3px;
   color: #4382b2;
 `;
@@ -288,6 +297,7 @@ const CloseButton = styled.button`
   border: none;
   border-radius: 14px;
   background: #4d7fa8;
+  font-family: "SUITE", sans-serif;
   color: white;
   font-size: 18px;
   font-weight: 800;

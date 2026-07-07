@@ -7,14 +7,14 @@ import { FiCheckSquare, FiUser } from "react-icons/fi";
 export default function Footer() {
   return (
     <FooterBar>
-      <MenuItem to="/">
+      <MenuItem to="/" end>
         <IconWrapper>
           <GoHome size={28} />
         </IconWrapper>
         <span>홈</span>
       </MenuItem>
 
-      <MenuItem to="/diary">
+      <MenuItem to="/diaryMain">
         <IconWrapper>
           <BsBookmark size={23} />
         </IconWrapper>
@@ -62,14 +62,14 @@ const MenuItem = styled(NavLink)`
 
   span {
     margin-top: 6px;
-    font-family: "Pretendard", sans-serif;
+    font-family: "SUITE", sans-serif;
     font-size: 13px;
     font-weight: 700;
     line-height: 1;
   }
 
   &.active {
-    color: #3f7aac;
+    color: #102550;
   }
 `;
 
