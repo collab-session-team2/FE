@@ -1,6 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import RootLayout from "../src/layout/RootLayout.jsx";
-import Main from "../src/pages/Main/Main.jsx";
 import MissionPage from "./pages/mission/MissionPage";
 
 import RootLayout from "./layout/RootLayout";
