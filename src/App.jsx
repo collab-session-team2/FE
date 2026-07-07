@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MissionPage from "./pages/mission/MissionPage";
+import MissionVerifyPage from "./pages/mission/MissionVerifyPage";
 
 import RootLayout from "./layout/RootLayout";
 import Home from "./pages/Home/Home";
@@ -19,6 +20,10 @@ function App() {
           <Route path="/create" element={<RoomCreate />} />
           <Route path="/diaryMain" element={<DiaryMain />} />
           <Route path="/diaryWrite" element={<DiaryWrite />} />
+          <Route
+            path="/mission/:missionId/verify"
+            element={<MissionVerifyPage />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>
