@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MissionPage from "./pages/mission/MissionPage";
 import MissionVerifyPage from "./pages/mission/MissionVerifyPage";
 
@@ -8,10 +8,16 @@ import RoomCreate from "./pages/roomCreate/RoomCreate";
 import DiaryMain from "./pages/diary/diaryMain";
 import DiaryWrite from "./pages/diary/diaryWrite";
 
+import LoginPage from "./pages/auth/LoginPage";
+import SignupPage from "./pages/auth/SignupPage";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        
         <Route element={<RootLayout />}>
           <Route path="/add" element={<></>} />{" "}
           <Route path="/mission" element={<MissionPage />} />
