@@ -2,13 +2,16 @@ import { useState, useRef } from "react";
 import styled from "styled-components";
 import { FiImage } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { useDiary } from "../../store/DiaryContext";
 
 export default function RoomCreate() {
   const navigate = useNavigate();
+  const { createRoom } = useDiary();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [roomCode, setRoomCode] = useState("");
 
+  const [roomName, setRoomName] = useState("");
   // 선택된 인원수
   const [selectedPeople, setSelectedPeople] = useState(null);
 
@@ -16,9 +19,19 @@ export default function RoomCreate() {
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
 
+  // 모든 정보 입력 여부 (이름 + 인원수 + 대표 사진)
+  const isFormComplete =
+    roomName.trim() !== "" && selectedPeople !== null && !!imagePreview;
+
   const handleCreateRoom = () => {
-    const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setRoomCode(randomCode);
+    if (!isFormComplete) return;
+    // 방코드 발급 + 전체 유저 기준 생성 순번 배정
+    const { code } = createRoom({
+      name: roomName,
+      peopleCount: selectedPeople || 4,
+      photo: imagePreview,
+    });
+    setRoomCode(code);
     setIsModalOpen(true);
   };
 
@@ -49,7 +62,10 @@ export default function RoomCreate() {
       <FormWrapper>
         <Section>
           <Label>일기장 이름</Label>
-          <Input />
+          <Input
+            value={roomName}
+            onChange={(e) => setRoomName(e.target.value)}
+          />
         </Section>
 
         <Section>
@@ -89,7 +105,13 @@ export default function RoomCreate() {
           />
         </Section>
 
-        <CreateButton onClick={handleCreateRoom}>일기장 생성하기</CreateButton>
+        <CreateButton
+          onClick={handleCreateRoom}
+          disabled={!isFormComplete}
+          $disabled={!isFormComplete}
+        >
+          일기장 생성하기
+        </CreateButton>
       </FormWrapper>
 
       {isModalOpen && (
@@ -221,12 +243,14 @@ const CreateButton = styled.button`
   height: 58px;
   border-radius: 30px;
   border: none;
-  background: #497092;
-  color: white;
+  background: ${({ $disabled }) => ($disabled ? "#6b6259" : "#497092")};
+  color: ${({ $disabled }) => ($disabled ? "#b3aca3" : "white")};
   font-size: 24px;
   font-weight: 700;
-  cursor: pointer;
+  cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
+  opacity: ${({ $disabled }) => ($disabled ? 0.6 : 1)};
   margin-top: -10px;
+  transition: background 0.15s ease, opacity 0.15s ease;
 `;
 
 const ModalOverlay = styled.div`
